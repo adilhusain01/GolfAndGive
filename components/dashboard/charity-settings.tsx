@@ -1,0 +1,135 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
+import { Heart, Check, Loader2, Save } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface Props {
+  subscription: any;
+  charities:    any[];
+}
+
+export function CharitySettings({ subscription, charities }: Props) {
+  const router   = useRouter();
+  const supabase = createClient();
+
+  const [charityId, setCharityId] = useState<string>(subscription?.selected_charity_id ?? "");
+  const [pct, setPct]             = useState<number>(subscription?.charity_percentage ?? 10);
+  const [loading, setLoading]     = useState(false);
+
+  const isDirty =
+    charityId !== subscription?.selected_charity_id ||
+    pct       !== subscription?.charity_percentage;
+
+  const handleSave = async () => {
+    if (!subscription) return;
+    setLoading(true);
+    const { error } = await supabase
+      .from("subscriptions")
+      .update({ selected_charity_id: charityId, charity_percentage: pct })
+      .eq("id", subscription.id);
+
+    if (error) { toast.error(error.message); setLoading(false); return; }
+
+    toast.success("Charity preference updated!");
+    router.refresh();
+    setLoading(false);
+  };
+
+  if (!subscription) {
+    return (
+      <div className="text-center py-16 text-muted-foreground">
+        <Heart className="size-10 mx-auto mb-3 opacity-30" />
+        <p>You need an active subscription to select a charity.</p>
+        <Button className="mt-4" asChild>
+          <a href="/subscribe">Subscribe now</a>
+        </Button>
+      </div>
+    );
+  }
+
+  const monthlyTotal = subscription?.plan === "yearly" ? 4799 / 12 : 499;
+  const charityAmt   = (monthlyTotal * pct / 100).toFixed(0);
+
+  return (
+    <div className="max-w-2xl space-y-6 animate-fade-in">
+      <div>
+        <h1 className="text-2xl font-bold">My Charity</h1>
+        <p className="text-muted-foreground text-sm mt-1">Choose where your contribution goes each month.</p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Select a charity</CardTitle>
+          <CardDescription>Changing your charity takes effect from the next billing cycle.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {charities.map((c) => (
+            <div
+              key={c.id}
+              onClick={() => setCharityId(c.id)}
+              className={cn(
+                "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
+                charityId === c.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+              )}
+            >
+              <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                {c.logo_url
+                  ? <img src={c.logo_url} alt={c.name} className="size-9 rounded-full object-cover" />
+                  : <Heart className="size-4 text-primary" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm">{c.name}</p>
+                {c.description && <p className="text-xs text-muted-foreground truncate">{c.description}</p>}
+              </div>
+              {charityId === c.id && <Check className="size-4 text-primary shrink-0" />}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Contribution percentage</CardTitle>
+          <CardDescription>Minimum 10%. Any increase comes from your subscription amount.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex justify-between items-center">
+            <Label>Your contribution</Label>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold text-primary">{pct}%</span>
+              <Badge variant="outline">≈ ₹{charityAmt}/mo</Badge>
+            </div>
+          </div>
+          <Slider
+            min={10} max={100} step={5}
+            value={[pct]}
+            onValueChange={([v]) => setPct(v)}
+          />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>10% (minimum)</span>
+            <span>100% (full donation)</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Button
+        onClick={handleSave} disabled={!isDirty || loading}
+        className="w-full gap-2"
+      >
+        {loading
+          ? <Loader2 className="size-4 animate-spin" />
+          : <Save className="size-4" />}
+        Save changes
+      </Button>
+    </div>
+  );
+}

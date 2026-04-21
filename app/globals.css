@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background:         0 0% 100%;
+    --foreground:         222.2 84% 4.9%;
+    --card:               0 0% 100%;
+    --card-foreground:    222.2 84% 4.9%;
+    --popover:            0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary:            152 60% 38%;   /* brand-500 */
+    --primary-foreground: 0 0% 100%;
+    --secondary:          210 40% 96%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted:              210 40% 96%;
+    --muted-foreground:   215.4 16.3% 46.9%;
+    --accent:             43 96% 56%;    /* gold */
+    --accent-foreground:  222.2 84% 4.9%;
+    --destructive:        0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border:             214.3 31.8% 91.4%;
+    --input:              214.3 31.8% 91.4%;
+    --ring:               152 60% 38%;
+    --radius:             0.75rem;
+  }
+
+  .dark {
+    --background:         224 20% 7%;
+    --foreground:         210 40% 98%;
+    --card:               224 20% 10%;
+    --card-foreground:    210 40% 98%;
+    --popover:            224 20% 10%;
+    --popover-foreground: 210 40% 98%;
+    --primary:            152 55% 45%;
+    --primary-foreground: 224 20% 7%;
+    --secondary:          217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted:              217.2 32.6% 17.5%;
+    --muted-foreground:   215 20.2% 65.1%;
+    --accent:             43 90% 55%;
+    --accent-foreground:  224 20% 7%;
+    --destructive:        0 62.8% 50%;
+    --destructive-foreground: 210 40% 98%;
+    --border:             217.2 32.6% 17.5%;
+    --input:              217.2 32.6% 17.5%;
+    --ring:               152 55% 45%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; }
+  h1, h2, h3, h4, h5, h6 { @apply tracking-tight; }
+}
+
+/* Gradient hero bg */
+.gradient-hero {
+  background: radial-gradient(ellipse 80% 60% at 50% -10%, hsl(152 60% 30% / 0.25), transparent),
+              radial-gradient(ellipse 60% 50% at 80% 80%, hsl(43 90% 55% / 0.08), transparent);
+}
+
+/* Shimmer loading */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--secondary)) 50%,
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+  @apply animate-shimmer;
+}
