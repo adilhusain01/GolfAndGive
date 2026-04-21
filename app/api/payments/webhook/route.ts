@@ -5,65 +5,73 @@ import { splitSubscription } from "@/lib/dodo/client";
 // DodoPayments sends a raw-body HMAC-SHA256 signature
 export async function POST(req: NextRequest) {
   const rawBody = await req.text();
-  const sig     = req.headers.get("webhook-signature") ?? "";
-  const secret  = process.env.DODO_WEBHOOK_SECRET!;
+  const sig = req.headers.get("webhook-signature") ?? "";
+  const secret = process.env.DODO_WEBHOOK_SECRET!;
 
   // Verify signature
   const encoder = new TextEncoder();
-  const key     = await crypto.subtle.importKey(
-    "raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["verify"]
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["verify"],
   );
-  const data    = encoder.encode(rawBody);
-  const sigBuf  = Buffer.from(sig, "hex");
-  const valid   = await crypto.subtle.verify("HMAC", key, sigBuf, data);
+  const data = encoder.encode(rawBody);
+  const sigBuf = Buffer.from(sig, "hex");
+  const valid = await crypto.subtle.verify("HMAC", key, sigBuf, data);
 
   if (!valid) {
     console.warn("[webhook] invalid signature");
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
-  const event   = JSON.parse(rawBody);
+  const event = JSON.parse(rawBody);
   const supabase = createAdminClient();
 
   // Log raw event
   await supabase.from("payment_events").insert({
     event_type: event.type,
-    payload:    event,
-    user_id:    event.data?.metadata?.user_id ?? null,
+    payload: event,
+    user_id: event.data?.metadata?.user_id ?? null,
   });
 
   try {
     switch (event.type) {
       // ── Payment succeeded — activate subscription ──────────
       case "payment.succeeded": {
-        const meta   = event.data?.metadata ?? {};
+        const meta = event.data?.metadata ?? {};
         const userId = meta.user_id;
         if (!userId) break;
 
-        const plan              = meta.plan ?? "monthly";
-        const charityId         = meta.charity_id;
+        const plan = meta.plan ?? "monthly";
+        const charityId = meta.charity_id;
         const charityPercentage = parseInt(meta.charity_percentage ?? "10", 10);
-        const amountPence       = event.data?.amount ?? 0;
+        const amountPence = event.data?.amount ?? 0;
 
         // Upsert subscription
-        const now       = new Date();
+        const now = new Date();
         const periodEnd = new Date(now);
         periodEnd.setMonth(periodEnd.getMonth() + (plan === "yearly" ? 12 : 1));
 
         const { data: sub } = await supabase
           .from("subscriptions")
-          .upsert({
-            user_id:              userId,
-            plan,
-            status:               "active",
-            dodo_subscription_id: event.data?.subscription_id ?? event.data?.payment_id,
-            dodo_customer_id:     event.data?.customer_id,
-            amount_pence:         amountPence,
-            charity_percentage:   charityPercentage,
-            selected_charity_id:  charityId,
-            current_period_start: now.toISOString(),
-            current_period_end:   periodEnd.toISOString(),
-          }, { onConflict: "user_id" })
+          .upsert(
+            {
+              user_id: userId,
+              plan,
+              status: "active",
+              dodo_subscription_id:
+                event.data?.subscription_id ?? event.data?.payment_id,
+              dodo_customer_id: event.data?.customer_id,
+              amount_pence: amountPence,
+              charity_percentage: charityPercentage,
+              selected_charity_id: charityId,
+              current_period_start: now.toISOString(),
+              current_period_end: periodEnd.toISOString(),
+            },
+            { onConflict: "user_id" },
+          )
           .select()
           .single();
 
@@ -71,13 +79,13 @@ export async function POST(req: NextRequest) {
         if (sub && charityId) {
           const split = splitSubscription(amountPence, charityPercentage);
           await supabase.from("charity_contributions").insert({
-            user_id:         userId,
-            charity_id:      charityId,
+            user_id: userId,
+            charity_id: charityId,
             subscription_id: sub.id,
-            amount:          split.charity,
-            currency:        "INR",
-            period_start:    now.toISOString(),
-            period_end:      periodEnd.toISOString(),
+            amount: split.charity,
+            currency: "INR",
+            period_start: now.toISOString(),
+            period_end: periodEnd.toISOString(),
           });
         }
 
@@ -99,7 +107,10 @@ export async function POST(req: NextRequest) {
         if (subId) {
           await supabase
             .from("subscriptions")
-            .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
+            .update({
+              status: "cancelled",
+              cancelled_at: new Date().toISOString(),
+            })
             .eq("dodo_subscription_id", subId);
         }
         break;
@@ -108,20 +119,22 @@ export async function POST(req: NextRequest) {
       // ── Subscription renewed ──────────────────────────────
       case "subscription.renewed":
       case "subscription.active": {
-        const subId  = event.data?.id ?? event.data?.subscription_id;
+        const subId = event.data?.id ?? event.data?.subscription_id;
         const userId = event.data?.metadata?.user_id;
         if (subId) {
-          const now       = new Date();
-          const plan      = event.data?.metadata?.plan ?? "monthly";
+          const now = new Date();
+          const plan = event.data?.metadata?.plan ?? "monthly";
           const periodEnd = new Date(now);
-          periodEnd.setMonth(periodEnd.getMonth() + (plan === "yearly" ? 12 : 1));
+          periodEnd.setMonth(
+            periodEnd.getMonth() + (plan === "yearly" ? 12 : 1),
+          );
 
           const { data: sub } = await supabase
             .from("subscriptions")
             .update({
-              status:               "active",
+              status: "active",
               current_period_start: now.toISOString(),
-              current_period_end:   periodEnd.toISOString(),
+              current_period_end: periodEnd.toISOString(),
             })
             .eq("dodo_subscription_id", subId)
             .select()
@@ -130,16 +143,19 @@ export async function POST(req: NextRequest) {
           // Record renewal charity contribution
           if (sub && userId) {
             const amountPence = event.data?.amount ?? sub.amount_pence;
-            const split       = splitSubscription(amountPence, sub.charity_percentage);
+            const split = splitSubscription(
+              amountPence,
+              sub.charity_percentage,
+            );
             if (sub.selected_charity_id) {
               await supabase.from("charity_contributions").insert({
-                user_id:         userId,
-                charity_id:      sub.selected_charity_id,
+                user_id: userId,
+                charity_id: sub.selected_charity_id,
                 subscription_id: sub.id,
-                amount:          split.charity,
-                currency:        "INR",
-                period_start:    now.toISOString(),
-                period_end:      periodEnd.toISOString(),
+                amount: split.charity,
+                currency: "INR",
+                period_start: now.toISOString(),
+                period_end: periodEnd.toISOString(),
               });
             }
           }
@@ -153,6 +169,3 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ received: true });
 }
-
-// Disable body parsing — we need raw body for signature verification
-export const config = { api: { bodyParser: false } };
