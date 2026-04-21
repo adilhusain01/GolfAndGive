@@ -1,10 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { SubscriptionStatusCard } from "@/components/dashboard/subscription-status-card";
+import {
+  SubscriptionStatusCard,
+  CharityCard,
+  DrawParticipationCard,
+  WinningsCard,
+} from "@/components/dashboard/subscription-status-card";
 import { ScoreWidget } from "@/components/dashboard/score-widget";
-import { CharityCard } from "@/components/dashboard/charity-card";
-import { DrawParticipationCard } from "@/components/dashboard/draw-participation-card";
-import { WinningsCard } from "@/components/dashboard/winnings-card";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Dashboard" };
