@@ -6,7 +6,8 @@ type ButtonVariant =
   | "outline"
   | "ghost"
   | "destructive"
-  | "secondary";
+  | "secondary"
+  | "link";
 type ButtonSize = "default" | "sm" | "lg" | "icon";
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -22,6 +23,7 @@ const variants: Record<ButtonVariant, string> = {
   destructive:
     "bg-destructive text-destructive-foreground hover:bg-destructive/90",
   secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/90",
+  link: "text-primary underline-offset-4 hover:underline bg-transparent p-0",
 };
 
 const sizes: Record<ButtonSize, string> = {

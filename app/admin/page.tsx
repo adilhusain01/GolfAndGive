@@ -5,6 +5,14 @@ import { RecentUsersTable } from "@/components/admin/recent-users-table";
 import { DrawStatsChart } from "@/components/admin/draw-stats-chart";
 import type { Metadata } from "next";
 
+type SubscriptionPool = {
+  amount_pence?: number | null;
+};
+
+type CharityTotal = {
+  amount?: string | null;
+};
+
 export const metadata: Metadata = { title: "Admin — Overview" };
 
 export default async function AdminPage() {
@@ -17,32 +25,75 @@ export default async function AdminPage() {
     { data: charityTotal },
     { data: recentUsers },
     { data: draws },
-  ] = await Promise.all([
+  ] = (await Promise.all([
     supabase.from("profiles").select("id", { count: "exact", head: true }),
-    supabase.from("subscriptions").select("id", { count: "exact", head: true }).eq("status", "active"),
-    supabase.from("subscriptions").select("amount_pence").eq("status", "active"),
+    supabase
+      .from("subscriptions")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "active"),
+    supabase
+      .from("subscriptions")
+      .select("amount_pence")
+      .eq("status", "active"),
     supabase.from("charity_contributions").select("amount"),
-    supabase.from("profiles").select("id, full_name, email, created_at, role")
-      .order("created_at", { ascending: false }).limit(10),
-    supabase.from("draws").select("draw_month, status, jackpot_amount, pool_4match, pool_3match")
-      .order("draw_month", { ascending: false }).limit(6),
-  ]);
+    supabase
+      .from("profiles")
+      .select("id, full_name, email, created_at, role")
+      .order("created_at", { ascending: false })
+      .limit(10),
+    supabase
+      .from("draws")
+      .select("draw_month, status, jackpot_amount, pool_4match, pool_3match")
+      .order("draw_month", { ascending: false })
+      .limit(6),
+  ])) as [
+    { count: number | null },
+    { count: number | null },
+    { data: SubscriptionPool[] | null },
+    { data: CharityTotal[] | null },
+    { data: any[] | null },
+    { data: any[] | null },
+  ];
 
-  const totalPool = pool?.reduce((s, sub) => s + sub.amount_pence / 100 * 0.5, 0) ?? 0;
-  const totalCharity = charityTotal?.reduce((s, c) => s + Number(c.amount), 0) ?? 0;
+  const totalPool =
+    pool?.reduce((s, sub) => s + ((sub.amount_pence ?? 0) / 100) * 0.5, 0) ?? 0;
+  const totalCharity =
+    charityTotal?.reduce((s, c) => s + Number(c.amount), 0) ?? 0;
 
   const stats = [
-    { label: "Total Users",         value: totalUsers ?? 0,                       icon: Users,       color: "text-blue-500"  },
-    { label: "Active Subscribers",  value: activeSubs ?? 0,                       icon: CreditCard,  color: "text-primary"   },
-    { label: "Cumulative Prize Pool", value: `₹${totalPool.toLocaleString("en-IN")}`, icon: Trophy,  color: "text-amber-500" },
-    { label: "Total to Charities",  value: `₹${totalCharity.toLocaleString("en-IN")}`, icon: Heart,  color: "text-rose-500"  },
+    {
+      label: "Total Users",
+      value: totalUsers ?? 0,
+      icon: Users,
+      color: "text-blue-500",
+    },
+    {
+      label: "Active Subscribers",
+      value: activeSubs ?? 0,
+      icon: CreditCard,
+      color: "text-primary",
+    },
+    {
+      label: "Cumulative Prize Pool",
+      value: `₹${totalPool.toLocaleString("en-IN")}`,
+      icon: Trophy,
+      color: "text-amber-500",
+    },
+    {
+      label: "Total to Charities",
+      value: `₹${totalCharity.toLocaleString("en-IN")}`,
+      icon: Heart,
+      color: "text-rose-500",
+    },
   ];
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="text-2xl font-bold">Admin Overview</h1>
-        <p className="text-muted-foreground text-sm mt-1">Platform-wide stats at a glance.</p>
+        <p className="text-muted-foreground text-sm mt-1">
+          Platform-wide stats at a glance.
+        </p>
       </div>
 
       {/* Stats grid */}

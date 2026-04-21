@@ -9,6 +9,18 @@ import {
 import { ScoreWidget } from "@/components/dashboard/score-widget";
 import type { Metadata } from "next";
 
+type DashboardSubscription = {
+  status?: string | null;
+  plan?: string | null;
+  charity_percentage?: number | null;
+  charities?: {
+    id: string;
+    name: string;
+    slug: string;
+    logo_url: string | null;
+  } | null;
+};
+
 export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
@@ -24,7 +36,7 @@ export default async function DashboardPage() {
     { data: scores },
     { data: winners },
     { data: upcomingDraw },
-  ] = await Promise.all([
+  ] = (await Promise.all([
     supabase
       .from("subscriptions")
       .select("*, charities(id, name, slug, logo_url)")
@@ -54,7 +66,12 @@ export default async function DashboardPage() {
       .order("draw_month", { ascending: true })
       .limit(1)
       .single(),
-  ]);
+  ])) as [
+    { data: DashboardSubscription | null },
+    { data: any[] | null },
+    { data: any[] | null },
+    { data: any | null },
+  ];
 
   const hasActiveSubscription = subscription?.status === "active";
 

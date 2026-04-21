@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -13,47 +19,56 @@ import { cn } from "@/lib/utils";
 
 const PLANS = [
   {
-    key:    "monthly",
-    label:  "Monthly",
-    price:  "₹499",
+    key: "monthly",
+    label: "Monthly",
+    price: "₹499",
     period: "/month",
-    desc:   "Billed monthly. Cancel anytime.",
-    badge:  null,
+    desc: "Billed monthly. Cancel anytime.",
+    badge: null,
   },
   {
-    key:    "yearly",
-    label:  "Yearly",
-    price:  "₹4,799",
+    key: "yearly",
+    label: "Yearly",
+    price: "₹4,799",
     period: "/year",
-    desc:   "Save ~20% vs monthly.",
-    badge:  "Best value",
+    desc: "Save ~20% vs monthly.",
+    badge: "Best value",
   },
 ] as const;
 
 interface Props {
-  charities: { id: string; name: string; description: string | null; logo_url: string | null }[];
+  charities: {
+    id: string;
+    name: string;
+    description: string | null;
+    logo_url: string | null;
+  }[];
 }
 
 export function SubscribePage({ charities }: Props) {
-  const router   = useRouter();
-  const [plan, setPlan]           = useState<"monthly" | "yearly">("monthly");
+  const router = useRouter();
+  const [plan, setPlan] = useState<"monthly" | "yearly">("monthly");
   const [charityId, setCharityId] = useState<string>("");
-  const [pct, setPct]             = useState(10);
-  const [loading, setLoading]     = useState(false);
+  const [pct, setPct] = useState(10);
+  const [loading, setLoading] = useState(false);
 
   const monthlyEq = plan === "yearly" ? (4799 / 12).toFixed(0) : "499";
-  const charityAmt = plan === "yearly"
-    ? ((4799 * pct) / 100).toFixed(0)
-    : ((499 * pct) / 100).toFixed(0);
+  const charityAmt =
+    plan === "yearly"
+      ? ((4799 * pct) / 100).toFixed(0)
+      : ((499 * pct) / 100).toFixed(0);
 
   const handleSubscribe = async () => {
-    if (!charityId) { toast.error("Please select a charity first."); return; }
+    if (!charityId) {
+      toast.error("Please select a charity first.");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/payments/create-checkout", {
-        method:  "POST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ plan, charityId, charityPercentage: pct }),
+        body: JSON.stringify({ plan, charityId, charityPercentage: pct }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Failed to create checkout");
@@ -69,7 +84,9 @@ export function SubscribePage({ charities }: Props) {
     <div className="max-w-3xl mx-auto py-12 px-4 space-y-8">
       <div className="text-center">
         <h1 className="text-3xl font-bold">Choose your plan</h1>
-        <p className="text-muted-foreground mt-2">One subscription. Prizes, golf tracking, and charity impact.</p>
+        <p className="text-muted-foreground mt-2">
+          One subscription. Prizes, golf tracking, and charity impact.
+        </p>
       </div>
 
       {/* ── Plan picker ───────────────────────────────── */}
@@ -80,7 +97,7 @@ export function SubscribePage({ charities }: Props) {
             onClick={() => setPlan(p.key)}
             className={cn(
               "cursor-pointer transition-all border-2",
-              plan === p.key ? "border-primary" : "border-transparent"
+              plan === p.key ? "border-primary" : "border-transparent",
             )}
           >
             <CardHeader className="pb-2">
@@ -90,8 +107,11 @@ export function SubscribePage({ charities }: Props) {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{p.price}
-                <span className="text-sm font-normal text-muted-foreground">{p.period}</span>
+              <div className="text-3xl font-bold">
+                {p.price}
+                <span className="text-sm font-normal text-muted-foreground">
+                  {p.period}
+                </span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">{p.desc}</p>
               {plan === p.key && (
@@ -109,10 +129,13 @@ export function SubscribePage({ charities }: Props) {
         <CardContent className="pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
           {[
             { icon: Trophy, text: "Monthly prize draws" },
-            { icon: Zap,    text: "Score tracking & history" },
-            { icon: Heart,  text: "Charity contribution" },
+            { icon: Zap, text: "Score tracking & history" },
+            { icon: Heart, text: "Charity contribution" },
           ].map(({ icon: Icon, text }) => (
-            <div key={text} className="flex items-center gap-2 text-muted-foreground">
+            <div
+              key={text}
+              className="flex items-center gap-2 text-muted-foreground"
+            >
               <Icon className="size-4 text-primary" /> {text}
             </div>
           ))}
@@ -129,21 +152,33 @@ export function SubscribePage({ charities }: Props) {
               onClick={() => setCharityId(c.id)}
               className={cn(
                 "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
-                charityId === c.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+                charityId === c.id
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/40",
               )}
             >
               <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                {c.logo_url
-                  ? <img src={c.logo_url} alt={c.name} className="size-8 rounded-full object-cover" />
-                  : <Heart className="size-4 text-primary" />}
+                {c.logo_url ? (
+                  <img
+                    src={c.logo_url}
+                    alt={c.name}
+                    className="size-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <Heart className="size-4 text-primary" />
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm">{c.name}</p>
                 {c.description && (
-                  <p className="text-xs text-muted-foreground truncate">{c.description}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {c.description}
+                  </p>
                 )}
               </div>
-              {charityId === c.id && <Check className="size-4 text-primary shrink-0" />}
+              {charityId === c.id && (
+                <Check className="size-4 text-primary shrink-0" />
+              )}
             </div>
           ))}
         </div>
@@ -152,13 +187,17 @@ export function SubscribePage({ charities }: Props) {
       {/* ── Charity % slider ──────────────────────────── */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
-          <Label className="text-base font-semibold">Charity contribution</Label>
+          <Label className="text-base font-semibold">
+            Charity contribution
+          </Label>
           <span className="text-primary font-bold text-lg">{pct}%</span>
         </div>
         <Slider
-          min={10} max={100} step={5}
-          value={[pct]}
-          onValueChange={([v]) => setPct(v)}
+          min={10}
+          max={100}
+          step={5}
+          value={pct}
+          onChange={(event) => setPct(Number(event.target.value))}
           className="py-2"
         />
         <div className="flex justify-between text-xs text-muted-foreground">
@@ -169,7 +208,8 @@ export function SubscribePage({ charities }: Props) {
 
       {/* ── CTA ───────────────────────────────────────── */}
       <Button
-        size="lg" className="w-full text-base h-12"
+        size="lg"
+        className="w-full text-base h-12"
         onClick={handleSubscribe}
         disabled={loading || !charityId}
       >

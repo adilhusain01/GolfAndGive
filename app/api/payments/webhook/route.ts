@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   const supabase = createAdminClient();
 
   // Log raw event
-  await supabase.from("payment_events").insert({
+  await (supabase.from("payment_events") as any).insert({
     event_type: event.type,
     payload: event,
     user_id: event.data?.metadata?.user_id ?? null,
@@ -54,8 +54,7 @@ export async function POST(req: NextRequest) {
         const periodEnd = new Date(now);
         periodEnd.setMonth(periodEnd.getMonth() + (plan === "yearly" ? 12 : 1));
 
-        const { data: sub } = await supabase
-          .from("subscriptions")
+        const { data: sub } = await (supabase.from("subscriptions") as any)
           .upsert(
             {
               user_id: userId,
@@ -78,7 +77,7 @@ export async function POST(req: NextRequest) {
         // Record charity contribution
         if (sub && charityId) {
           const split = splitSubscription(amountPence, charityPercentage);
-          await supabase.from("charity_contributions").insert({
+          await (supabase.from("charity_contributions") as any).insert({
             user_id: userId,
             charity_id: charityId,
             subscription_id: sub.id,
@@ -90,8 +89,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Mark event processed
-        await supabase
-          .from("payment_events")
+        await (supabase.from("payment_events") as any)
           .update({ processed: true })
           .eq("event_type", event.type)
           .order("created_at", { ascending: false })
@@ -105,8 +103,7 @@ export async function POST(req: NextRequest) {
       case "subscription.ended": {
         const subId = event.data?.id ?? event.data?.subscription_id;
         if (subId) {
-          await supabase
-            .from("subscriptions")
+          await (supabase.from("subscriptions") as any)
             .update({
               status: "cancelled",
               cancelled_at: new Date().toISOString(),
@@ -129,8 +126,7 @@ export async function POST(req: NextRequest) {
             periodEnd.getMonth() + (plan === "yearly" ? 12 : 1),
           );
 
-          const { data: sub } = await supabase
-            .from("subscriptions")
+          const { data: sub } = await (supabase.from("subscriptions") as any)
             .update({
               status: "active",
               current_period_start: now.toISOString(),
@@ -148,7 +144,7 @@ export async function POST(req: NextRequest) {
               sub.charity_percentage,
             );
             if (sub.selected_charity_id) {
-              await supabase.from("charity_contributions").insert({
+              await (supabase.from("charity_contributions") as any).insert({
                 user_id: userId,
                 charity_id: sub.selected_charity_id,
                 subscription_id: sub.id,

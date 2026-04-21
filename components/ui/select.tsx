@@ -22,12 +22,20 @@ function useSelect() {
 }
 
 type SelectProps = {
-  value: string;
+  value?: string;
+  defaultValue?: string;
   onValueChange: (value: string) => void;
   children: React.ReactNode;
 };
 
-export function Select({ value, onValueChange, children }: SelectProps) {
+export function Select({
+  value,
+  defaultValue,
+  onValueChange,
+  children,
+}: SelectProps) {
+  const [internalValue, setInternalValue] = React.useState(defaultValue ?? "");
+  const selectedValue = value ?? internalValue;
   const [open, setOpen] = React.useState(false);
   const triggerId = React.useId();
   const containerRef = React.useRef<HTMLDivElement | null>(null);
@@ -45,7 +53,18 @@ export function Select({ value, onValueChange, children }: SelectProps) {
 
   return (
     <SelectContext.Provider
-      value={{ value, onValueChange, open, setOpen, triggerId }}
+      value={{
+        value: selectedValue,
+        onValueChange: (val: string) => {
+          if (value === undefined) {
+            setInternalValue(val);
+          }
+          onValueChange(val);
+        },
+        open,
+        setOpen,
+        triggerId,
+      }}
     >
       <div ref={containerRef} className="relative inline-block text-left">
         {children}
@@ -79,11 +98,15 @@ export function SelectTrigger({
   );
 }
 
+type SelectValueProps = React.HTMLAttributes<HTMLSpanElement> & {
+  placeholder?: string;
+};
+
 export function SelectValue({
   placeholder = "Select an option",
   className,
   ...props
-}: React.HTMLAttributes<HTMLSpanElement>) {
+}: SelectValueProps) {
   const { value } = useSelect();
 
   return (

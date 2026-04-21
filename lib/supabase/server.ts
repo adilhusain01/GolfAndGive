@@ -1,6 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import type { Database } from "@/types/supabase";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey =
@@ -11,12 +10,12 @@ const supabaseKey =
 export async function createClient() {
   const cookieStore = await cookies();
 
-  return createServerClient<Database>(supabaseUrl!, supabaseKey!, {
+  return createServerClient<any>(supabaseUrl!, supabaseKey!, {
     cookies: {
       getAll() {
         return cookieStore.getAll();
       },
-      setAll(toSet) {
+      setAll(toSet: Array<{ name: string; value: string; options?: any }>) {
         try {
           toSet.forEach(({ name, value, options }) =>
             cookieStore.set(name, value, options),
@@ -31,7 +30,7 @@ export async function createClient() {
 
 /** Service-role client — use ONLY in trusted server contexts (webhooks, crons) */
 export function createAdminClient() {
-  return createServerClient<Database>(
+  return createServerClient<any>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { cookies: { getAll: () => [], setAll: () => {} } },

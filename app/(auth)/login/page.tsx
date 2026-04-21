@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+
+export const dynamic = "force-dynamic";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -11,13 +13,22 @@ import { loginSchema, type LoginInput } from "@/lib/validations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Loader2, Heart } from "lucide-react";
 
-export default function LoginPage() {
-  const router       = useRouter();
-  const searchParams = useSearchParams();
-  const supabase     = createClient();
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams: URLSearchParams;
+}) {
+  const router = useRouter();
+  const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const nextPath = searchParams.get("next") ?? "/dashboard";
   const justVerified = searchParams.get("verify") === "1";
@@ -32,7 +43,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email:    data.email,
+        email: data.email,
         password: data.password,
       });
 
@@ -67,14 +78,32 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="arjun@email.com" {...register("email")} />
-              {errors.email && <p className="text-destructive text-xs">{errors.email.message}</p>}
+              <Input
+                id="email"
+                type="email"
+                placeholder="arjun@email.com"
+                {...register("email")}
+              />
+              {errors.email && (
+                <p className="text-destructive text-xs">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" placeholder="••••••••" {...register("password")} />
-              {errors.password && <p className="text-destructive text-xs">{errors.password.message}</p>}
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                {...register("password")}
+              />
+              {errors.password && (
+                <p className="text-destructive text-xs">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
@@ -85,7 +114,10 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-muted-foreground mt-4">
             Don't have an account?{" "}
-            <Link href="/signup" className="text-primary underline-offset-4 hover:underline">
+            <Link
+              href="/signup"
+              className="text-primary underline-offset-4 hover:underline"
+            >
               Sign up
             </Link>
           </p>

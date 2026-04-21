@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       const email = user.email ?? "";
 
       if (email) {
-        await supabase.from("profiles").upsert(
+        await (supabase.from("profiles") as any).upsert(
           {
             id: user.id,
             full_name: typeof full_name === "string" ? full_name : "",

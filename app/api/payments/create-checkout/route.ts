@@ -6,52 +6,64 @@ import { subscriptionCreateSchema } from "@/lib/validations";
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user)
+      return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
 
-    const body   = await req.json();
+    const body = await req.json();
     const parsed = subscriptionCreateSchema.safeParse(body);
-    if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+    if (!parsed.success)
+      return NextResponse.json(
+        { error: parsed.error.flatten() },
+        { status: 400 },
+      );
 
-    const { plan, charityId, charityPercentage } = parsed.data;
+    const { plan, charity_id, charity_percentage } = parsed.data;
     const planConfig = PLANS[plan];
 
     // Get or fetch profile for customer name/email
-    const { data: profile } = await supabase
+    const { data: profile } = (await supabase
       .from("profiles")
       .select("full_name, email")
       .eq("id", user.id)
-      .single();
+      .single()) as {
+      data: { full_name?: string | null; email?: string | null } | null;
+    };
 
     // Create a DodoPayments payment link / checkout session
     // Dodo uses product_id + quantity model for subscriptions
-    const checkout = await dodo.payments.create({
+    const checkout = await (dodo.payments as any).create({
       billing: {
-        city:    "Mumbai",
+        city: "Mumbai",
         country: "IN",
-        state:   "MH",
-        street:  "N/A",
+        state: "MH",
+        street: "N/A",
         zipcode: "400001",
       },
       customer: {
         email: profile?.email ?? user.email!,
-        name:  profile?.full_name ?? "Subscriber",
+        name: profile?.full_name ?? "Subscriber",
       },
-      product_id:  planConfig.productId,
-      quantity:    1,
+      product_id: planConfig.productId,
+      quantity: 1,
       payment_link: true,
-      return_url:  `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/success?plan=${plan}&charity=${charityId}&pct=${charityPercentage}`,
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/success?plan=${plan}&charity=${charity_id}&pct=${charity_percentage}`,
       metadata: {
-        user_id:            user.id,
+        user_id: user.id,
         plan,
-        charity_id:         charityId,
-        charity_percentage: String(charityPercentage),
+        charity_id: charity_id,
+        charity_percentage: String(charity_percentage),
       },
     });
 
     return NextResponse.json({ url: (checkout as any).payment_link });
   } catch (err: any) {
     console.error("[create-checkout]", err);
-    return NextResponse.json({ error: err.message ?? "Server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: err.message ?? "Server error" },
+      { status: 500 },
+    );
   }
 }
