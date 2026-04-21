@@ -25,13 +25,19 @@ import { Loader2, Heart } from "lucide-react";
 export default function LoginPage({
   searchParams,
 }: {
-  searchParams: URLSearchParams;
+  searchParams: { [key: string]: string | string[] | undefined };
 }) {
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
-  const nextPath = searchParams.get("next") ?? "/dashboard";
-  const justVerified = searchParams.get("verify") === "1";
+  const nextPath =
+    (Array.isArray(searchParams.next)
+      ? searchParams.next[0]
+      : searchParams.next) ?? "/dashboard";
+  const justVerified =
+    (Array.isArray(searchParams.verify)
+      ? searchParams.verify[0]
+      : searchParams.verify) === "1";
 
   const {
     register,
