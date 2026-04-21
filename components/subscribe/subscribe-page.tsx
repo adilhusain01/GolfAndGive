@@ -68,7 +68,11 @@ export function SubscribePage({ charities }: Props) {
       const res = await fetch("/api/payments/create-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan, charityId, charityPercentage: pct }),
+        body: JSON.stringify({
+          plan,
+          charity_id: charityId,
+          charity_percentage: pct,
+        }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Failed to create checkout");
