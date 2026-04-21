@@ -215,7 +215,7 @@ export function SubscribePage({ charities }: Props) {
         size="lg"
         className="w-full text-base h-12"
         onClick={handleSubscribe}
-        disabled={loading || !charityId}
+        disabled={loading}
       >
         {loading && <Loader2 className="size-4 mr-2 animate-spin" />}
         Subscribe {plan === "yearly" ? "Yearly · ₹4,799" : "Monthly · ₹499"}
