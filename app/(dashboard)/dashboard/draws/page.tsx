@@ -6,6 +6,18 @@ import { getMonthLabel } from "@/lib/utils";
 import { Trophy, Target } from "lucide-react";
 import type { Metadata } from "next";
 
+type DrawEntry = {
+  id: string;
+  numbers?: number[] | null;
+  prize_tier?: string | null;
+  match_count?: number | null;
+  draws?: {
+    draw_month?: string | null;
+    winning_numbers?: number[] | null;
+    status?: string | null;
+  } | null;
+};
+
 export const metadata: Metadata = { title: "My Draws" };
 
 export default async function DashboardDrawsPage() {
@@ -17,7 +29,7 @@ export default async function DashboardDrawsPage() {
     .from("draw_entries")
     .select("*, draws(draw_month, winning_numbers, status)")
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false }) as { data: DrawEntry[] | null };
 
   return (
     <div className="max-w-3xl space-y-6 animate-fade-in">
