@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { type ButtonHTMLAttributes, type HTMLAttributes } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "./button";
 import { cn } from "@/lib/utils";
 
@@ -39,7 +40,11 @@ export function AlertDialog({
     return null;
   }
 
-  return (
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  return createPortal(
     <AlertDialogContext.Provider value={{ onOpenChange }}>
       <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto p-4 sm:items-center sm:p-6">
         <div
@@ -53,7 +58,8 @@ export function AlertDialog({
           {children}
         </div>
       </div>
-    </AlertDialogContext.Provider>
+    </AlertDialogContext.Provider>,
+    document.body,
   );
 }
 

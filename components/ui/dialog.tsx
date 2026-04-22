@@ -1,4 +1,7 @@
+"use client";
+
 import { type HTMLAttributes, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 type DialogProps = {
@@ -19,7 +22,11 @@ export function Dialog({
     return null;
   }
 
-  return (
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto p-4 sm:items-center sm:p-6">
       <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm"
@@ -34,7 +41,8 @@ export function Dialog({
       >
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
