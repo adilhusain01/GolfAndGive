@@ -2,6 +2,13 @@
 -- if the tables already exist but app reads/writes fail with
 -- "permission denied for table ..." errors.
 
+drop policy if exists "profiles: admin all" on public.profiles;
+create policy "profiles: admin all"
+on public.profiles
+for all
+using (is_admin())
+with check (is_admin());
+
 grant usage on schema public to anon, authenticated, service_role;
 
 grant select on table public.charities to anon;

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
-import dodo, { PLANS } from "@/lib/dodo/client";
+import dodo, { dodoEnvironment, PLANS } from "@/lib/dodo/client";
 import { subscriptionCreateSchema } from "@/lib/validations";
 
 export async function POST(req: NextRequest) {
@@ -45,13 +45,18 @@ export async function POST(req: NextRequest) {
     }
 
     // Get or fetch profile for customer name/email
-    const { data: profile } = (await supabase
+    const { data: profile, error: profileError } = (await supabase
       .from("profiles")
       .select("full_name, email")
       .eq("id", user.id)
       .single()) as {
       data: { full_name?: string | null; email?: string | null } | null;
+      error?: { message?: string | null } | null;
     };
+
+    if (profileError) {
+      console.error("[create-checkout][profile]", profileError.message);
+    }
 
     const checkout = await dodo.subscriptions.create({
       billing: {
@@ -102,6 +107,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: checkout.payment_link });
   } catch (err: any) {
     console.error("[create-checkout]", err);
+    if (err?.status === 401) {
+      return NextResponse.json(
+        {
+          error:
+            `Dodo rejected the API credentials for ${dodoEnvironment}. ` +
+            "Check DODO_API_KEY, DODO_ENVIRONMENT, and that your product IDs belong to the same Dodo environment.",
+        },
+        { status: 502 },
+      );
+    }
     return NextResponse.json(
       { error: err.message ?? "Server error" },
       { status: 500 },

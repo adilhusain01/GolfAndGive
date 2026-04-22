@@ -41,9 +41,7 @@ $$;
 create policy "profiles: owner read"   on profiles for select using (auth.uid() = id);
 create policy "profiles: owner insert" on profiles for insert with check (auth.uid() = id);
 create policy "profiles: owner update" on profiles for update using (auth.uid() = id);
-create policy "profiles: admin all"    on profiles for all using (
-  exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin')
-);
+create policy "profiles: admin all"    on profiles for all using (is_admin()) with check (is_admin());
 
 -- ─── SUBSCRIPTIONS ────────────────────────────────────────────
 create table subscriptions (

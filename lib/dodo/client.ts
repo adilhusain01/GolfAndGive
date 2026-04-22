@@ -1,12 +1,21 @@
 import DodoPayments from "dodopayments";
 
+const dodoEnvironment =
+  process.env.DODO_ENVIRONMENT === "live_mode" ||
+  process.env.DODO_ENVIRONMENT === "test_mode"
+    ? process.env.DODO_ENVIRONMENT
+    : process.env.NODE_ENV === "production"
+      ? "live_mode"
+      : "test_mode";
+
 // Singleton client — re-used across invocations in the same warm lambda
 const dodo = new DodoPayments({
   bearerToken: process.env.DODO_API_KEY!,
-  environment: process.env.NODE_ENV === "production" ? "live_mode" : "test_mode",
+  environment: dodoEnvironment,
 });
 
 export default dodo;
+export { dodoEnvironment };
 
 // ─── Plan config ──────────────────────────────────────────────
 export const PLANS = {
