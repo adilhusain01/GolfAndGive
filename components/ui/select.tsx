@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 type SelectContextValue = {
@@ -9,6 +10,7 @@ type SelectContextValue = {
   open: boolean;
   setOpen: (open: boolean) => void;
   triggerId: string;
+  triggerRef: React.RefObject<HTMLButtonElement>;
 };
 
 const SelectContext = React.createContext<SelectContextValue | null>(null);
@@ -39,6 +41,7 @@ export function Select({
   const [open, setOpen] = React.useState(false);
   const triggerId = React.useId();
   const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
 
   React.useEffect(() => {
     function handleClick(event: MouseEvent) {
@@ -64,6 +67,7 @@ export function Select({
         open,
         setOpen,
         triggerId,
+        triggerRef,
       }}
     >
       <div ref={containerRef} className="relative inline-block text-left">
@@ -78,12 +82,13 @@ export function SelectTrigger({
   children,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  const { open, setOpen, triggerId } = useSelect();
+  const { open, setOpen, triggerId, triggerRef } = useSelect();
 
   return (
     <button
       type="button"
       id={triggerId}
+      ref={triggerRef}
       aria-haspopup="listbox"
       aria-expanded={open}
       onClick={() => setOpen(!open)}
@@ -120,21 +125,65 @@ export function SelectContent({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  const { open, triggerId } = useSelect();
+  const { open, triggerId, triggerRef } = useSelect();
+  const [position, setPosition] = React.useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
+
+  React.useLayoutEffect(() => {
+    if (!open || !triggerRef.current) {
+      return;
+    }
+
+    const updatePosition = () => {
+      const rect = triggerRef.current?.getBoundingClientRect();
+      if (!rect) {
+        return;
+      }
+
+      setPosition({
+        top: rect.bottom + 8,
+        left: rect.left,
+        width: rect.width,
+      });
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [open, triggerRef]);
+
   if (!open) {
     return null;
   }
 
-  return (
+  if (typeof document === "undefined" || !position) {
+    return null;
+  }
+
+  return createPortal(
     <div
       role="listbox"
       aria-labelledby={triggerId}
       className={cn(
-        "absolute right-0 z-20 mt-2 min-w-[220px] overflow-hidden rounded-3xl border border-border bg-background shadow-2xl",
+        "fixed z-[70] overflow-hidden rounded-3xl border border-border bg-background shadow-2xl",
         className,
       )}
+      style={{
+        top: position.top,
+        left: position.left,
+        minWidth: Math.max(position.width, 220),
+      }}
       {...props}
-    />
+    />,
+    document.body,
   );
 }
 
