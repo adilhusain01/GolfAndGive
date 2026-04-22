@@ -1,234 +1,321 @@
-# Golf & Give 🏌️‍♂️❤️
+# Golf & Give
 
-> Play. Score. Win. Give Back.
+Golf & Give is a subscription product that combines golf score tracking, monthly prize draws, and recurring charity contributions. Members subscribe, select a charity, retain their latest five Stableford scores, enter monthly draws, and upload proof if they win. Admins manage draws, charities, users, payouts, and reporting from a separate console.
 
-A subscription-driven web application combining golf performance tracking, monthly prize draws, and charity fundraising — built for Digital Heroes' trainee selection process.
+This README reflects the current codebase and setup flow.
 
----
+## What is implemented
 
-## Tech Stack
+### Public site
+- Landing page with redesigned public marketing surface
+- Charity directory and charity detail pages
+- Public subscribe page
+- Public one-time donation flow on charity pages
+- Auth pages for sign up and login
 
-| Layer        | Technology                                                      |
-|--------------|-----------------------------------------------------------------|
-| Framework    | **Next.js 14** (App Router, Server Components, Server Actions)  |
-| Styling      | **Tailwind CSS** + **shadcn/ui** (Radix primitives)             |
-| State        | **Zustand** + Immer                                             |
-| Forms        | **React Hook Form** + **Zod** validation                        |
-| Database     | **Supabase** (PostgreSQL + RLS + Storage + Auth)                |
-| Payments     | **DodoPayments** (subscriptions + webhooks)                     |
-| Charts       | **Recharts**                                                    |
-| Animations   | **Framer Motion** + Tailwind animate                            |
-| Deployment   | **Vercel** (new project) + **Supabase** (new project)           |
+### Subscriber product
+- Email auth with Supabase
+- Subscription checkout with Dodo Payments
+- Charity selection and charity percentage preferences
+- Score entry, edit, and delete
+- Rolling latest-5 score lifecycle
+- Draw history
+- Subscription settings and cancellation request flow
+- Winner proof upload flow through a server route
+- Avatar upload through a server route
 
----
+### Admin product
+- Admin overview dashboard
+- User management
+  - edit profile details and role
+  - edit latest subscription record
+  - add, edit, delete retained scores
+- Charity CRUD
+- Draw creation, simulation, and publish workflow
+- Winner review and payout approval or rejection
+- Reports and analytics with charts
 
-## Project Structure
+### Payments, webhooks, and notifications
+- Dodo subscription checkout
+- Dodo one-time donation checkout
+- Webhook verification using Standard Webhooks headers
+- Webhook processing for subscription activation, renewal, updates, cancellation, and payment success
+- Charity contribution booking from successful payments
+- Donation receipt handling
+- Optional email notifications via Resend for:
+  - subscription activation, renewal, cancellation
+  - draw result emails
+  - winner review emails
+  - donation receipts
 
+## Current architecture
+
+### Stack
+- Next.js 14 App Router
+- TypeScript
+- Tailwind CSS
+- shadcn-style UI primitives in `components/ui`
+- Supabase
+  - Postgres
+  - Auth
+  - RLS
+  - Storage
+- Dodo Payments
+- React Hook Form + Zod
+- Recharts
+- Sonner
+
+### Important app areas
+
+```text
+app/
+  (auth)/
+    login/page.tsx
+    signup/page.tsx
+  (dashboard)/dashboard/
+    page.tsx
+    charity/page.tsx
+    draws/page.tsx
+    settings/page.tsx
+    winners/page.tsx
+  admin/
+    page.tsx
+    users/page.tsx
+    draws/page.tsx
+    charities/page.tsx
+    winners/page.tsx
+    reports/page.tsx
+  api/
+    auth/callback/route.ts
+    payments/
+      create-checkout/route.ts
+      success/route.ts
+      cancel/route.ts
+      webhook/route.ts
+    donations/create-checkout/route.ts
+    subscription/preferences/route.ts
+    profile/avatar/route.ts
+    winners/[id]/proof/route.ts
+    admin/
+      charities/route.ts
+      charities/[id]/route.ts
+      draws/route.ts
+      draws/[id]/simulate/route.ts
+      draws/[id]/publish/route.ts
+      users/[id]/route.ts
+      users/[id]/subscription/route.ts
+      users/[id]/scores/route.ts
+      users/[id]/scores/[scoreId]/route.ts
+      winners/[id]/review/route.ts
+
+lib/
+  admin.ts
+  dodo/client.ts
+  dodo/server.ts
+  draw-engine.ts
+  notifications.ts
+  supabase/client.ts
+  supabase/server.ts
+  utils.ts
+  validations.ts
+
+supabase/
+  001_initial.sql
+  002_permissions_patch.sql
+  003_donations_patch.sql
 ```
-golf-charity-draw/
-├── app/
-│   ├── (auth)/
-│   │   ├── login/page.tsx
-│   │   └── signup/page.tsx
-│   ├── (dashboard)/
-│   │   └── dashboard/
-│   │       ├── layout.tsx
-│   │       ├── page.tsx              ← overview
-│   │       ├── scores/page.tsx
-│   │       ├── draws/page.tsx
-│   │       ├── charity/page.tsx
-│   │       ├── winners/page.tsx
-│   │       └── settings/page.tsx
-│   ├── admin/
-│   │   ├── layout.tsx
-│   │   ├── page.tsx                  ← overview
-│   │   ├── users/page.tsx
-│   │   ├── draws/page.tsx
-│   │   ├── charities/page.tsx
-│   │   ├── winners/page.tsx
-│   │   └── reports/page.tsx
-│   ├── api/
-│   │   ├── auth/callback/route.ts
-│   │   ├── payments/
-│   │   │   ├── create-checkout/route.ts
-│   │   │   ├── webhook/route.ts
-│   │   │   ├── success/route.ts
-│   │   │   └── cancel/route.ts
-│   │   └── admin/
-│   │       ├── draws/route.ts
-│   │       └── draws/[id]/
-│   │           ├── simulate/route.ts
-│   │           └── publish/route.ts
-│   ├── charities/
-│   │   ├── page.tsx
-│   │   └── [slug]/page.tsx
-│   ├── subscribe/page.tsx
-│   └── page.tsx                      ← landing
-├── components/
-│   ├── admin/                        ← admin UI
-│   ├── dashboard/                    ← subscriber UI
-│   └── shared/                       ← navbar, footer, etc.
-├── lib/
-│   ├── supabase/
-│   │   ├── client.ts                 ← browser client
-│   │   └── server.ts                 ← server + admin client
-│   ├── dodo/client.ts                ← DodoPayments + prize logic
-│   ├── draw-engine.ts                ← draw + match algorithms
-│   ├── validations.ts                ← Zod schemas
-│   └── utils.ts                      ← cn, formatCurrency, etc.
-├── store/index.ts                    ← Zustand global store
-├── types/supabase.ts                 ← DB type definitions
-├── supabase/migrations/001_initial.sql
-├── middleware.ts
-└── ...config files
-```
 
----
+## Environment variables
 
-## Quick Start
+Copy `.env.example` to `.env.local` for local development and set the same values in Vercel for deployment.
 
-### 1. Clone & install
+### Supabase
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+### Dodo Payments
+- `DODO_API_KEY`
+- `DODO_PAYMENTS_API_KEY`
+  - optional compatibility alias
+  - the server supports either name
+- `DODO_ENVIRONMENT`
+  - `test_mode` or `live_mode`
+- `DODO_WEBHOOK_SECRET`
+- `DODO_PAYMENTS_WEBHOOK_KEY`
+  - optional compatibility alias for the webhook secret
+- `DODO_MONTHLY_PRODUCT_ID`
+- `DODO_YEARLY_PRODUCT_ID`
+- `DODO_DONATION_PRODUCT_ID`
+
+### App
+- `NEXT_PUBLIC_APP_URL`
+- `NEXT_PUBLIC_APP_NAME`
+
+### Email
+- `RESEND_API_KEY`
+- `EMAIL_FROM`
+
+### Auth
+- `NEXTAUTH_SECRET`
+- `NEXTAUTH_URL`
+
+## Local development
+
+### 1. Install
 
 ```bash
-git clone <your-repo>
-cd golf-charity-draw
 npm install
 ```
 
-### 2. Supabase setup
+### 2. Initialize Supabase
 
-1. Create a **new** Supabase project at [supabase.com](https://supabase.com)
-2. In the SQL Editor, run `supabase/migrations/001_initial.sql`
-3. Enable Email auth in Authentication → Providers
-4. Set your site URL and redirect URLs in Auth → URL Configuration:
-   - Site URL: `https://your-vercel-url.vercel.app`
-   - Redirect: `https://your-vercel-url.vercel.app/api/auth/callback`
+For a fresh Supabase project:
+1. Create a Supabase project.
+2. Run `supabase/001_initial.sql` in the SQL editor.
+3. Enable email auth.
+4. Configure Auth URLs:
+   - Site URL: `http://localhost:3000`
+   - Redirect URL: `http://localhost:3000/api/auth/callback`
 
-### 3. DodoPayments setup
+For an existing project that already has partial schema/data:
+- do not rerun `001_initial.sql` blindly
+- apply only the relevant patch files instead:
+  - `supabase/002_permissions_patch.sql`
+  - `supabase/003_donations_patch.sql`
 
-1. Create an account at [dodopayments.com](https://dodopayments.com)
-2. Create two products:
-   - **Monthly** — ₹499/month recurring
-   - **Yearly** — ₹4,799/year recurring
-3. Copy Product IDs to `.env`
-4. Set webhook endpoint to `https://your-domain/api/payments/webhook`
-5. Subscribe to events: `payment.succeeded`, `subscription.cancelled`, `subscription.renewed`
+### 3. Configure Dodo
 
-### 4. Environment variables
+Create these products in the same Dodo environment as your API key:
+- monthly recurring product
+- yearly recurring product
+- one-time donation product
 
-```bash
-cp .env.example .env.local
-# Fill in all values from Supabase and DodoPayments dashboards
+Set the webhook endpoint to:
+
+```text
+https://your-domain/api/payments/webhook
 ```
 
-### 5. Run locally
+Subscribe Dodo to the events used by the app:
+- `payment.succeeded`
+- `subscription.active`
+- `subscription.renewed`
+- `subscription.updated`
+- `subscription.cancelled`
+
+### 4. Run the app
 
 ```bash
 npm run dev
-# Open http://localhost:3000
 ```
 
----
+Open [http://localhost:3000](http://localhost:3000).
 
-## Deployment (Vercel)
+## Production deployment
 
-1. Push to GitHub
-2. Create a **new** Vercel account and import the repo
-3. Add all environment variables from `.env.example` in Vercel dashboard
-4. Deploy — Vercel auto-detects Next.js
+### Vercel
+1. Import the repo into Vercel.
+2. Add all required environment variables.
+3. Redeploy after any env changes.
 
-> **Important**: Use a *new* Vercel account and *new* Supabase project as per assignment requirements.
+### Supabase production setup
+1. Run `001_initial.sql` for a fresh production project.
+2. If production was already initialized before the later fixes, also run:
+   - `002_permissions_patch.sql`
+   - `003_donations_patch.sql`
 
----
+### Dodo production notes
+- `DODO_API_KEY`, `DODO_ENVIRONMENT`, and the product IDs must all belong to the same Dodo environment.
+- Webhook verification uses Standard Webhooks headers.
+- The server now keeps Dodo SDK usage in `lib/dodo/server.ts`, so client bundles do not try to read secret env vars.
 
-## Key Features
+## Database summary
 
-### User Flow
-- Sign up → verify email → subscribe (choose plan + charity + %) → enter scores → participate in monthly draw → upload proof if winner → receive payment
+Main tables:
+- `profiles`
+- `subscriptions`
+- `charities`
+- `golf_scores`
+- `draws`
+- `draw_entries`
+- `winners`
+- `charity_contributions`
+- `payment_events`
+- `donations`
 
-### Score System
-- Stableford format, range 1–45
-- One score per date (enforced via DB unique constraint)
-- Rolling 5-score limit enforced by PostgreSQL trigger
-- Displayed newest-first
+Main lifecycle rules:
+- one score per user per date
+- rolling five-score retention
+- draw publication only includes users with all five retained scores
+- subscriptions are activated and updated from webhook events
+- winner proof uploads go through authenticated server routes
+- charity preference updates go through authenticated server routes
 
-### Draw Engine (`lib/draw-engine.ts`)
-- **Random**: Standard lottery-style draw
-- **Algorithmic**: Weighted toward least-frequent user scores (harder jackpot)
-- Admin simulates → reviews → publishes
-- 5-match jackpot rolls over automatically if unclaimed
+## Useful scripts
 
-### Prize Pool
-| Tier | Share | Rollover |
-|------|-------|----------|
-| 5-match (Jackpot) | 40% | ✓ |
-| 4-match | 35% | ✗ |
-| 3-match | 25% | ✗ |
-
-Split equally among multiple winners in same tier.
-
-### Charity System
-- User selects charity at signup (minimum 10% contribution)
-- Can increase % voluntarily
-- Contributions tracked per billing cycle in `charity_contributions` table
-
-### Admin Panel
-- Full user management
-- Draw creation → simulation → publish workflow
-- Charity CRUD
-- Winner verification (approve/reject with notes)
-- Analytics dashboard with Recharts
-
----
-
-## Database Schema (Summary)
-
-```
-profiles          ← extends auth.users
-subscriptions     ← plan, status, dodo IDs, charity %
-charities         ← name, slug, media, events
-golf_scores       ← user scores (rolling 5, unique per date)
-draws             ← monthly draws with winning numbers
-draw_entries      ← per-user draw entries + match results
-winners           ← verified prize winners
-charity_contributions ← per-cycle donation records
-payment_events    ← webhook audit log
+```bash
+npm run dev
+npm run lint
+npm run typecheck
+npm run build
 ```
 
-All tables have Row Level Security (RLS) enabled.
+## Admin setup
 
----
-
-## Testing Checklist
-
-- [ ] User signup & email verification
-- [ ] Login / logout
-- [ ] Subscription flow (monthly + yearly)
-- [ ] Score entry — rolling 5, duplicate date rejected
-- [ ] Edit / delete score
-- [ ] Draw simulation + publish
-- [ ] Winner calculation (3/4/5 match)
-- [ ] Jackpot rollover (no 5-match)
-- [ ] Charity selection + % update
-- [ ] Winner proof upload
-- [ ] Admin: approve / reject winner
-- [ ] Admin: charity CRUD
-- [ ] Reports charts render correctly
-- [ ] Mobile responsive on all pages
-- [ ] Dark mode
-
----
-
-## Making an Admin
-
-After signup, run in Supabase SQL editor:
+Create an admin after signup:
 
 ```sql
-update profiles set role = 'admin' where email = 'your@email.com';
+update profiles
+set role = 'admin'
+where email = 'your@email.com';
 ```
 
----
+## Recommended end-to-end verification
 
-## License
+After deployment, run this full flow at least once:
 
-Sample assignment — Digital Heroes trainee selection process.
+1. Sign up.
+2. Log in.
+3. Open `/subscribe` and confirm charities load.
+4. Start a subscription checkout.
+5. Complete payment.
+6. Confirm the webhook activates `subscriptions.status = active`.
+7. Enter five scores.
+8. Log in as admin.
+9. Create or simulate a draw.
+10. Publish the draw.
+11. If there is a winner, upload proof.
+12. Review the winner in admin.
+13. If donations are enabled, run one public donation checkout.
+14. If Resend is configured, verify outbound emails.
+
+## Validation status
+
+The repo currently passes:
+- `npm run typecheck`
+- `npm run lint`
+- `npm run build`
+
+That means the current branch is locally buildable and type-safe, but production behavior still depends on:
+- correct env vars
+- correct Supabase SQL state
+- correct Dodo product and webhook configuration
+- a real end-to-end run in the deployed environment
+
+## Known non-goals / remaining gaps
+
+The codebase is much closer to the PRD than the original state, but there are still some areas that are not a full enterprise product:
+- no auth-level user deletion or suspension tooling
+- email delivery is optional and depends on Resend config
+- some deeper UX polish can still be improved
+
+## Notes
+
+- `lib/dodo/client.ts` is safe to import from shared/client code and only contains plan metadata plus pure helpers.
+- `lib/dodo/server.ts` is server-only and owns Dodo SDK initialization.
+- If your deployment already uses older Dodo env names, the app supports:
+  - `DODO_PAYMENTS_API_KEY`
+  - `DODO_PAYMENTS_WEBHOOK_KEY`
+
