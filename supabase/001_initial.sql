@@ -214,6 +214,28 @@ alter table charity_contributions enable row level security;
 create policy "contributions: owner read" on charity_contributions for select using (auth.uid() = user_id);
 create policy "contributions: admin all"  on charity_contributions for all using (is_admin());
 
+-- ─── DONATIONS (independent / one-time) ──────────────────────
+create table donations (
+  id              uuid primary key default uuid_generate_v4(),
+  user_id         uuid references profiles(id) on delete set null,
+  charity_id      uuid not null references charities(id) on delete restrict,
+  donor_name      text not null,
+  donor_email     text not null,
+  amount_pence    int not null check (amount_pence > 0),
+  currency        text not null default 'INR',
+  status          text not null default 'pending',
+  dodo_payment_id text unique,
+  dodo_customer_id text,
+  message         text,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
+);
+
+alter table donations enable row level security;
+
+create policy "donations: owner read" on donations for select using (auth.uid() = user_id);
+create policy "donations: admin all"  on donations for all using (is_admin());
+
 -- ─── PAYMENT EVENTS (audit log) ───────────────────────────────
 create table payment_events (
   id            uuid primary key default uuid_generate_v4(),
@@ -244,6 +266,7 @@ create trigger trg_charities_updated      before update on charities            
 create trigger trg_scores_updated         before update on golf_scores          for each row execute function set_updated_at();
 create trigger trg_draws_updated          before update on draws                for each row execute function set_updated_at();
 create trigger trg_winners_updated        before update on winners              for each row execute function set_updated_at();
+create trigger trg_donations_updated      before update on donations            for each row execute function set_updated_at();
 
 -- ─── NEW USER PROFILE trigger ─────────────────────────────────
 create or replace function handle_new_user()

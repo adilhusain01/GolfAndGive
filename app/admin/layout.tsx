@@ -28,10 +28,11 @@ export default async function AdminLayout({
   if (profile?.role !== "admin") redirect("/dashboard");
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="relative flex min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.08),transparent_26%),radial-gradient(circle_at_bottom_right,hsl(var(--accent)/0.14),transparent_22%),hsl(var(--background))]">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,hsl(var(--foreground)/0.03)_50%,transparent_100%)]" />
       <AdminSidebar profile={profile} />
-      <main className="flex-1 overflow-y-auto p-6 bg-background">
-        {children}
+      <main className="relative flex-1 overflow-y-auto px-4 pb-8 pt-6 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-7xl">{children}</div>
       </main>
     </div>
   );

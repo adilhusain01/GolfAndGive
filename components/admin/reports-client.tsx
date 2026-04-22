@@ -38,11 +38,23 @@ export function ReportsClient({ contributions, draws, subsGrowth }: Props) {
 
   // Subscription growth (cumulative)
   const subGrowthData = useMemo(() => {
-    const map: Record<string, number> = {};
+    const firstSubscriptionByUser = new Map<string, string>();
+
     for (const s of subsGrowth) {
-      const month = format(startOfMonth(parseISO(s.created_at)), "MMM yy");
+      if (!s.user_id || firstSubscriptionByUser.has(s.user_id)) {
+        continue;
+      }
+
+      firstSubscriptionByUser.set(s.user_id, s.created_at);
+    }
+
+    const map: Record<string, number> = {};
+
+    for (const createdAt of firstSubscriptionByUser.values()) {
+      const month = format(startOfMonth(parseISO(createdAt)), "MMM yy");
       map[month] = (map[month] ?? 0) + 1;
     }
+
     let cum = 0;
     return Object.entries(map).map(([month, count]) => {
       cum += count;
@@ -63,26 +75,31 @@ export function ReportsClient({ contributions, draws, subsGrowth }: Props) {
 
   const totalCharity = contributions.reduce((s, c) => s + Number(c.amount), 0);
   const totalPrizes  = draws.reduce((s, d) => s + Number(d.jackpot_amount) + Number(d.pool_4match) + Number(d.pool_3match), 0);
+  const uniqueSubscribers = new Set(
+    subsGrowth
+      .map((subscription) => subscription.user_id)
+      .filter(Boolean),
+  ).size;
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-8 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold">Reports & Analytics</h1>
-        <p className="text-muted-foreground text-sm">Platform-wide trends and impact data.</p>
+        <p className="section-label">Reporting</p>
+        <h1 className="mt-2 font-display text-3xl text-foreground sm:text-4xl">Reports & Analytics</h1>
+        <p className="mt-3 text-sm text-muted-foreground">Platform-wide trends and impact data.</p>
       </div>
 
-      {/* KPI row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Total Subscribers",    value: subsGrowth.length,                        icon: Users,    color: "text-blue-500" },
+          { label: "Total Subscribers",    value: uniqueSubscribers,                        icon: Users,    color: "text-blue-500" },
           { label: "Total to Charities",   value: `₹${totalCharity.toLocaleString("en-IN")}`, icon: Heart,  color: "text-rose-500" },
           { label: "Total Prize Pools",    value: `₹${totalPrizes.toLocaleString("en-IN")}`,  icon: Trophy, color: "text-amber-500" },
           { label: "Draws Published",      value: draws.length,                             icon: BarChart3, color: "text-primary" },
         ].map(({ label, value, icon: Icon, color }) => (
-          <Card key={label}>
+          <Card key={label} className="overflow-hidden border-border/70 bg-card/85 shadow-[0_18px_40px_hsl(var(--foreground)/0.06)]">
             <CardContent className="pt-4">
               <Icon className={`size-4 ${color} mb-1`} />
-              <p className="text-2xl font-bold">{value}</p>
+              <p className="font-display text-3xl leading-none">{value}</p>
               <p className="text-xs text-muted-foreground">{label}</p>
             </CardContent>
           </Card>
@@ -90,8 +107,7 @@ export function ReportsClient({ contributions, draws, subsGrowth }: Props) {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Subscriber growth */}
-        <Card>
+        <Card className="overflow-hidden border-border/70 bg-card/85 shadow-[0_18px_40px_hsl(var(--foreground)/0.06)]">
           <CardHeader>
             <CardTitle className="text-base">Subscriber Growth</CardTitle>
           </CardHeader>
@@ -114,8 +130,7 @@ export function ReportsClient({ contributions, draws, subsGrowth }: Props) {
           </CardContent>
         </Card>
 
-        {/* Charity contributions by month */}
-        <Card>
+        <Card className="overflow-hidden border-border/70 bg-card/85 shadow-[0_18px_40px_hsl(var(--foreground)/0.06)]">
           <CardHeader>
             <CardTitle className="text-base">Monthly Charity Contributions (₹)</CardTitle>
           </CardHeader>
@@ -132,8 +147,7 @@ export function ReportsClient({ contributions, draws, subsGrowth }: Props) {
           </CardContent>
         </Card>
 
-        {/* Draw prize pools */}
-        <Card>
+        <Card className="overflow-hidden border-border/70 bg-card/85 shadow-[0_18px_40px_hsl(var(--foreground)/0.06)]">
           <CardHeader>
             <CardTitle className="text-base">Prize Pool Distribution by Draw</CardTitle>
           </CardHeader>
@@ -153,8 +167,7 @@ export function ReportsClient({ contributions, draws, subsGrowth }: Props) {
           </CardContent>
         </Card>
 
-        {/* Charity split pie */}
-        <Card>
+        <Card className="overflow-hidden border-border/70 bg-card/85 shadow-[0_18px_40px_hsl(var(--foreground)/0.06)]">
           <CardHeader>
             <CardTitle className="text-base">Contributions by Charity</CardTitle>
           </CardHeader>

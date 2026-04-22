@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
 import { charitySchema, type CharityInput } from "@/lib/validations";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,6 @@ interface Props { charities: any[] }
 
 export function CharitiesManager({ charities: initial }: Props) {
   const router    = useRouter();
-  const supabase  = createClient();
   const [charities, setCharities] = useState(initial);
   const [formOpen, setFormOpen]   = useState(false);
   const [editItem, setEditItem]   = useState<any>(null);
@@ -39,16 +37,26 @@ export function CharitiesManager({ charities: initial }: Props) {
     setLoading(true);
     try {
       if (editItem) {
-        const { data: updated, error } = await supabase
-          .from("charities").update(data).eq("id", editItem.id).select().single();
-        if (error) throw error;
-        setCharities((prev) => prev.map((c) => c.id === editItem.id ? updated : c));
+        const res = await fetch(`/api/admin/charities/${editItem.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error ?? "Failed to update charity");
+        setCharities((prev) =>
+          prev.map((c) => (c.id === editItem.id ? json.charity : c)),
+        );
         toast.success("Charity updated!");
       } else {
-        const { data: created, error } = await supabase
-          .from("charities").insert(data).select().single();
-        if (error) throw error;
-        setCharities((prev) => [created, ...prev]);
+        const res = await fetch("/api/admin/charities", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error ?? "Failed to create charity");
+        setCharities((prev) => [json.charity, ...prev]);
         toast.success("Charity created!");
       }
       setFormOpen(false);
@@ -62,28 +70,35 @@ export function CharitiesManager({ charities: initial }: Props) {
 
   const onDelete = async () => {
     if (!deleteId) return;
-    const { error } = await supabase.from("charities").delete().eq("id", deleteId);
-    if (error) { toast.error(error.message); return; }
+    const res = await fetch(`/api/admin/charities/${deleteId}`, {
+      method: "DELETE",
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      toast.error(json.error ?? "Failed to delete charity.");
+      return;
+    }
     setCharities((prev) => prev.filter((c) => c.id !== deleteId));
     setDeleteId(null);
     toast.success("Charity deleted.");
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Charities</h1>
-          <p className="text-muted-foreground text-sm">{charities.length} registered charities</p>
+          <p className="section-label">Registry</p>
+          <h1 className="mt-2 font-display text-3xl text-foreground sm:text-4xl">Charities</h1>
+          <p className="mt-3 text-sm text-muted-foreground">{charities.length} registered charities</p>
         </div>
-        <Button onClick={openCreate} className="gap-2">
+        <Button onClick={openCreate} className="gap-2 rounded-full px-5">
           <Plus className="size-4" /> Add Charity
         </Button>
       </div>
 
       <div className="grid gap-3">
         {charities.map((c) => (
-          <Card key={c.id}>
+          <Card key={c.id} className="overflow-hidden border-border/70 bg-card/85 shadow-[0_18px_40px_hsl(var(--foreground)/0.06)]">
             <CardContent className="py-4 flex items-center gap-4">
               <div className="relative size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
                 {c.logo_url
@@ -116,7 +131,7 @@ export function CharitiesManager({ charities: initial }: Props) {
           </Card>
         ))}
         {charities.length === 0 && (
-          <Card>
+          <Card className="border-border/70 bg-card/85">
             <CardContent className="py-12 text-center text-muted-foreground">
               <Heart className="size-10 mx-auto mb-3 opacity-30" />
               <p>No charities yet. Add one to get started.</p>
@@ -196,7 +211,9 @@ export function CharitiesManager({ charities: initial }: Props) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this charity?</AlertDialogTitle>
-            <AlertDialogDescription>This will remove the charity from the platform. Users who selected it will keep their existing subscription charity until they change it.</AlertDialogDescription>
+            <AlertDialogDescription>
+              This only works for charities that are not referenced by any subscription or historical contribution records.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>

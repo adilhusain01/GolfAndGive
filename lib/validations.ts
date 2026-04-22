@@ -46,6 +46,29 @@ export const charityUpdateSchema = z.object({
   charity_percentage: z.coerce.number().int().min(10).max(100),
 });
 
+export const adminUserUpdateSchema = z.object({
+  full_name: z.string().min(2, "Full name is required"),
+  role: z.enum(["subscriber", "admin"]),
+  phone: z.string().trim().max(20).optional().or(z.literal("")),
+  country: z.string().trim().min(2).max(2).optional().or(z.literal("")),
+});
+
+export const adminSubscriptionUpdateSchema = z.object({
+  plan: z.enum(["monthly", "yearly"]),
+  status: z.enum(["active", "inactive", "cancelled", "lapsed"]),
+  charity_percentage: z.coerce.number().int().min(10).max(100),
+  selected_charity_id: z.string().uuid().nullable(),
+  current_period_end: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+});
+
+export const donationCreateSchema = z.object({
+  charity_id: z.string().uuid(),
+  donor_name: z.string().min(2, "Donor name is required"),
+  donor_email: z.string().email("A valid email is required"),
+  amount_pence: z.coerce.number().int().min(1000).max(5000000),
+  message: z.string().max(400).optional().or(z.literal("")),
+});
+
 // ─── Draw ─────────────────────────────────────────────────────
 export const drawCreateSchema = z.object({
   draw_month: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -76,6 +99,9 @@ export type ScoreInput               = z.infer<typeof scoreSchema>;
 export type ScoreUpdateInput         = z.infer<typeof scoreUpdateSchema>;
 export type CharityInput             = z.infer<typeof charitySchema>;
 export type SubscriptionCreateInput  = z.infer<typeof subscriptionCreateSchema>;
+export type AdminUserUpdateInput     = z.infer<typeof adminUserUpdateSchema>;
+export type AdminSubscriptionUpdateInput = z.infer<typeof adminSubscriptionUpdateSchema>;
+export type DonationCreateInput      = z.infer<typeof donationCreateSchema>;
 export type DrawCreateInput          = z.infer<typeof drawCreateSchema>;
 export type DrawPublishInput         = z.infer<typeof drawPublishSchema>;
 export type WinnerReviewInput        = z.infer<typeof winnerReviewSchema>;

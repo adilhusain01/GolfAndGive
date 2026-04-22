@@ -2,6 +2,11 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { countMatches, getPrizeTier, calculatePrizes } from "@/lib/draw-engine";
 import { drawPublishSchema } from "@/lib/validations";
+import {
+  safelySendEmail,
+  sendDrawResultEmail,
+  sendWinnerAlertEmail,
+} from "@/lib/notifications";
 
 // POST /api/admin/draws/:id/publish
 export async function POST(
@@ -162,6 +167,61 @@ export async function POST(
 
   if (winnerRows.length > 0) {
     await (adminSupabase.from("winners") as any).insert(winnerRows);
+  }
+
+  const [{ data: profiles }, { data: drawWithMonth }] = await Promise.all([
+    adminSupabase
+      .from("profiles")
+      .select("id, full_name, email")
+      .in("id", eligibleUserIds),
+    adminSupabase
+      .from("draws")
+      .select("draw_month")
+      .eq("id", drawId)
+      .maybeSingle(),
+  ]);
+
+  const profilesByUserId = new Map(
+    (profiles ?? []).map((profile) => [profile.id, profile]),
+  );
+  const winnerByUserId = new Map(
+    winnerRows.map((winner) => [winner.user_id, winner]),
+  );
+
+  const drawMonth = drawWithMonth?.draw_month;
+
+  if (drawMonth) {
+    await Promise.all(
+      eligibleUserIds.map(async (userId) => {
+        const profile = profilesByUserId.get(userId);
+        if (!profile?.email) {
+          return;
+        }
+
+        const winner = winnerByUserId.get(userId);
+        if (winner) {
+          await safelySendEmail(`winner alert ${userId}`, () =>
+            sendWinnerAlertEmail({
+              to: profile.email,
+              fullName: profile.full_name,
+              drawMonth,
+              prizeTier: winner.prize_tier,
+              prizeAmount: winner.prize_amount,
+            }),
+          );
+          return;
+        }
+
+        await safelySendEmail(`draw result ${userId}`, () =>
+          sendDrawResultEmail({
+            to: profile.email,
+            fullName: profile.full_name,
+            drawMonth,
+            winningNumbers: winning_numbers,
+          }),
+        );
+      }),
+    );
   }
 
   // If jackpot rolled, carry forward to next draw

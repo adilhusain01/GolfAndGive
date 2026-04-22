@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import { CharityGrid } from "@/components/shared/charity-grid";
@@ -9,7 +9,13 @@ import { HowItWorks } from "@/components/shared/how-it-works";
 import { PrizePoolPreview } from "@/components/shared/prize-pool-preview";
 import { Navbar } from "@/components/shared/navbar";
 import { Footer } from "@/components/shared/footer";
-import { Heart, Trophy, Star, ArrowRight, TrendingUp } from "lucide-react";
+import {
+  ArrowRight,
+  Heart,
+  Sparkles,
+  Trophy,
+  WalletCards,
+} from "lucide-react";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -29,134 +35,261 @@ export default async function HomePage() {
     .limit(6);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="editorial-shell min-h-screen">
       <Navbar />
 
-      {/* ── HERO ─────────────────────────────────────────── */}
-      <section className="gradient-hero relative flex-1 flex flex-col items-center justify-center px-4 py-32 text-center overflow-hidden">
-        {/* Background orbs */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-primary/10 blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-accent/10 blur-3xl" />
-        </div>
+      <main>
+        <section className="px-4 pb-12 pt-10 md:pb-20 md:pt-14">
+          <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="paper-panel rounded-[2.7rem] border border-border/70 px-6 py-8 md:px-10 md:py-12">
+              <span className="section-label mb-6">
+                <Sparkles className="size-3.5" />
+                A membership model for generosity
+              </span>
 
-        <Badge variant="secondary" className="mb-6 gap-1.5 px-4 py-1.5 text-sm font-medium">
-          <Heart className="size-3.5 text-primary" />
-          Play golf. Change lives.
-        </Badge>
+              <h1 className="editorial-kicker max-w-3xl">
+                A better reason to keep score.
+              </h1>
+              <p className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">
+                Golf & Give turns a monthly score-entry ritual into something larger:
+                a recurring charity contribution, a live prize pool, and a member
+                experience that rewards consistency rather than noise.
+              </p>
 
-        <h1 className="max-w-4xl text-5xl md:text-7xl font-bold leading-[1.05] mb-6">
-          Your swing funds{" "}
-          <span className="text-primary">someone's</span>{" "}
-          future
-        </h1>
-
-        <p className="max-w-xl text-lg text-muted-foreground mb-10">
-          Enter your Stableford scores each month. Win prizes. A portion of every
-          subscription goes directly to the charity you choose.
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button size="lg" asChild className="gap-2 text-base px-8 h-12">
-            <Link href="/signup">
-              Start for ₹499/month
-              <ArrowRight className="size-4" />
-            </Link>
-          </Button>
-          <Button size="lg" variant="outline" asChild className="text-base h-12">
-            <Link href="#how-it-works">See how it works</Link>
-          </Button>
-        </div>
-
-        {/* Stats bar */}
-        <div className="mt-16 flex flex-wrap gap-x-12 gap-y-4 justify-center text-sm text-muted-foreground">
-          {[
-            { icon: TrendingUp, value: "₹2.4L+", label: "Prize pool distributed" },
-            { icon: Heart,      value: "₹68K+",  label: "Donated to charities"   },
-            { icon: Star,       value: "1,200+", label: "Active members"         },
-            { icon: Trophy,     value: "48",      label: "Monthly winners"        },
-          ].map(({ icon: Icon, value, label }) => (
-            <div key={label} className="flex items-center gap-2">
-              <Icon className="size-4 text-primary" />
-              <strong className="text-foreground">{value}</strong> {label}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── HOW IT WORKS ─────────────────────────────────── */}
-      <HowItWorks />
-
-      {/* ── FEATURED CHARITY ─────────────────────────────── */}
-      {featuredCharity && (
-        <section className="py-24 px-4 bg-muted/30">
-          <div className="max-w-5xl mx-auto">
-            <Badge variant="outline" className="mb-4">Spotlight Charity</Badge>
-            <div className="grid md:grid-cols-2 gap-10 items-center">
-              <div>
-                <h2 className="text-4xl font-bold mb-4">{featuredCharity.name}</h2>
-                <p className="text-muted-foreground text-lg mb-6">{featuredCharity.description}</p>
-                <Button asChild variant="outline">
-                  <Link href={`/charities/${featuredCharity.slug}`}>Learn more</Link>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Button size="lg" asChild className="pl-7 text-base">
+                  <Link href="/signup">
+                    Become a member
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
+                <Button size="lg" variant="outline" asChild className="text-base">
+                  <Link href="/charities">Explore charities</Link>
                 </Button>
               </div>
-              <Card className="overflow-hidden">
+
+              <div className="mt-10 grid gap-4 sm:grid-cols-3">
+                {[
+                  {
+                    icon: Trophy,
+                    title: "Monthly draw cadence",
+                    copy: "Retained scores form a fresh five-number entry every cycle.",
+                  },
+                  {
+                    icon: Heart,
+                    title: "Charity attached",
+                    copy: "Each active subscription carries a member-selected percentage.",
+                  },
+                  {
+                    icon: WalletCards,
+                    title: "Direct support too",
+                    copy: "Visitors can donate one-time without joining the membership.",
+                  },
+                ].map(({ icon: Icon, title, copy }) => (
+                  <div
+                    key={title}
+                    className="rounded-[1.6rem] border border-border/60 bg-background/70 px-4 py-4"
+                  >
+                    <Icon className="size-4 text-primary" />
+                    <p className="mt-3 font-medium">{title}</p>
+                    <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                      {copy}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid gap-6">
+              <Card className="paper-panel overflow-hidden border-border/70">
+                <CardContent className="relative min-h-[340px] p-0">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,hsl(var(--accent)/0.28),transparent_24%),radial-gradient(circle_at_80%_18%,hsl(var(--primary)/0.24),transparent_28%),linear-gradient(180deg,hsl(var(--card)),hsl(35_44%_94%))]" />
+                  <div className="relative flex h-full flex-col justify-between p-6">
+                    <div>
+                      <Badge variant="outline" className="bg-background/70">
+                        Current model
+                      </Badge>
+                      <h2 className="mt-5 font-display text-4xl leading-none">
+                        Competition with visible consequence.
+                      </h2>
+                    </div>
+
+                    <div className="grid gap-3">
+                      {[
+                        "Enter your latest Stableford rounds",
+                        "Trigger monthly draw eligibility with retained scores",
+                        "Send a defined slice of every payment to a chosen cause",
+                      ].map((item) => (
+                        <div
+                          key={item}
+                          className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3 text-sm text-foreground/90"
+                        >
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Card className="paper-panel border-border/70">
+                  <CardContent className="p-5">
+                    <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                      Monthly entry rule
+                    </p>
+                    <p className="mt-3 font-display text-4xl">5 retained scores</p>
+                    <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                      New rounds push out the oldest entry automatically so draw participation stays current.
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card className="paper-panel border-border/70">
+                  <CardContent className="p-5">
+                    <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                      Charity baseline
+                    </p>
+                    <p className="mt-3 font-display text-4xl">10% minimum</p>
+                    <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                      Members can increase the charity share well beyond the default split whenever they want.
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <HowItWorks />
+
+        {featuredCharity && (
+          <section className="px-4 py-6 md:py-12">
+            <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.92fr_1.08fr]">
+              <Card className="paper-panel overflow-hidden border-border/70">
                 <CardContent className="p-0">
                   {featuredCharity.cover_url ? (
-                    <div className="relative h-64 w-full">
+                    <div className="relative h-full min-h-[360px] w-full">
                       <Image
                         src={featuredCharity.cover_url}
                         alt={featuredCharity.name}
                         fill
-                        sizes="(max-width: 768px) 100vw, 50vw"
+                        sizes="(max-width: 1024px) 100vw, 45vw"
                         className="object-cover"
                         unoptimized
                       />
                     </div>
                   ) : (
-                    <div className="w-full h-64 bg-primary/10 flex items-center justify-center">
-                      <Heart className="size-16 text-primary/40" />
+                    <div className="flex min-h-[360px] items-center justify-center bg-primary/8">
+                      <Heart className="size-16 text-primary/35" />
                     </div>
                   )}
                 </CardContent>
               </Card>
+
+              <div className="paper-panel rounded-[2.4rem] border border-border/70 px-6 py-8 md:px-8 md:py-10">
+                <span className="section-label mb-5">Spotlight charity</span>
+                <h2 className="font-display text-5xl leading-none">
+                  {featuredCharity.name}
+                </h2>
+                <p className="mt-5 text-base leading-8 text-muted-foreground">
+                  {featuredCharity.description}
+                </p>
+
+                <div className="soft-rule my-8" />
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-[1.4rem] border border-border/60 bg-background/70 px-4 py-4">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+                      Member path
+                    </p>
+                    <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                      Select this organisation during membership checkout and keep funding it on every billing cycle.
+                    </p>
+                  </div>
+                  <div className="rounded-[1.4rem] border border-border/60 bg-background/70 px-4 py-4">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+                      Direct support
+                    </p>
+                    <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                      Visitors can also make a one-time donation from the charity profile page without subscribing.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                  <Button asChild className="pl-6">
+                    <Link href={`/charities/${featuredCharity.slug}`}>
+                      View charity profile
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </Button>
+                  <Button variant="outline" asChild>
+                    <Link href="/charities">See all charities</Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        <PrizePoolPreview />
+
+        <section className="px-4 py-24">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-12 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+              <div>
+                <span className="section-label mb-5">Directory</span>
+                <h2 className="editorial-kicker max-w-2xl">
+                  Choose a cause before you ever choose a plan.
+                </h2>
+              </div>
+              <p className="max-w-md text-sm leading-7 text-muted-foreground">
+                The brand is built around charitable destination first. The membership only matters because the impact path is clear.
+              </p>
+            </div>
+
+            <CharityGrid charities={charities ?? []} />
+          </div>
+        </section>
+
+        <section className="px-4 pb-10 pt-4">
+          <div className="mx-auto max-w-6xl rounded-[2.6rem] bg-primary px-6 py-10 text-primary-foreground shadow-[0_30px_60px_hsl(var(--primary)/0.2)] md:px-10 md:py-12">
+            <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+              <div>
+                <span className="section-label border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground/80">
+                  Membership invitation
+                </span>
+                <h2 className="mt-5 font-display text-5xl leading-none md:text-6xl">
+                  Less golf branding.
+                  <br />
+                  More real consequence.
+                </h2>
+              </div>
+              <div>
+                <p className="text-base leading-8 text-primary-foreground/80">
+                  Join to log retained scores, participate in the monthly draw, and keep a chosen organisation attached to every billing cycle.
+                </p>
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                  <Button size="lg" variant="secondary" asChild className="pl-6">
+                    <Link href="/signup">
+                      Start membership
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    asChild
+                    className="border-primary-foreground/20 bg-transparent text-primary-foreground hover:bg-primary-foreground/10"
+                  >
+                    <Link href="/subscribe">Review plans</Link>
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </section>
-      )}
-
-      {/* ── PRIZE POOL ───────────────────────────────────── */}
-      <PrizePoolPreview />
-
-      {/* ── CHARITIES ────────────────────────────────────── */}
-      <section className="py-24 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-3">Choose your cause</h2>
-            <p className="text-muted-foreground">Every membership funds the charity that matters most to you.</p>
-          </div>
-          <CharityGrid charities={charities ?? []} />
-          <div className="text-center mt-10">
-            <Button variant="outline" asChild>
-              <Link href="/charities">View all charities</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* ── FINAL CTA ────────────────────────────────────── */}
-      <section className="py-24 px-4 bg-primary text-primary-foreground text-center">
-        <h2 className="text-4xl md:text-5xl font-bold mb-4">Ready to play and give?</h2>
-        <p className="text-primary-foreground/80 text-lg mb-8 max-w-md mx-auto">
-          Join 1,200+ golfers who compete monthly while making a real difference.
-        </p>
-        <Button size="lg" variant="secondary" asChild className="gap-2 text-base h-12 px-8">
-          <Link href="/signup">
-            Get started
-            <ArrowRight className="size-4" />
-          </Link>
-        </Button>
-      </section>
+      </main>
 
       <Footer />
     </div>

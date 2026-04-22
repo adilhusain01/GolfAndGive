@@ -104,19 +104,19 @@ export function DrawManager({ draws: initialDraws, activeSubscribers }: Props) {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Draw Management</h1>
-          <p className="text-muted-foreground text-sm">Create, simulate and publish monthly draws.</p>
+          <p className="section-label">Lottery Operations</p>
+          <h1 className="mt-2 font-display text-3xl text-foreground sm:text-4xl">Draw Management</h1>
+          <p className="mt-3 text-sm text-muted-foreground">Create, simulate and publish monthly draws.</p>
         </div>
-        <Button onClick={() => setCreateOpen(true)} className="gap-2">
+        <Button onClick={() => setCreateOpen(true)} className="gap-2 rounded-full px-5">
           <Calendar className="size-4" /> New Draw
         </Button>
       </div>
 
-      {/* Pool preview */}
-      <Card className="bg-muted/30">
+      <Card className="border-border/70 bg-[linear-gradient(180deg,hsl(var(--card)),hsl(var(--accent)/0.1))] shadow-[0_18px_40px_hsl(var(--foreground)/0.06)]">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
             <Trophy className="size-4 text-amber-500" /> Current Prize Pool ({activeSubscribers.length} active subs)
@@ -139,7 +139,7 @@ export function DrawManager({ draws: initialDraws, activeSubscribers }: Props) {
       {/* Draws list */}
       <div className="space-y-3">
         {draws.length === 0 ? (
-          <Card>
+          <Card className="border-border/70 bg-card/85">
             <CardContent className="py-12 text-center text-muted-foreground">
               <Calendar className="size-10 mx-auto mb-3 opacity-30" />
               <p>No draws yet. Create your first one.</p>
@@ -147,7 +147,7 @@ export function DrawManager({ draws: initialDraws, activeSubscribers }: Props) {
           </Card>
         ) : (
           draws.map((draw) => (
-            <Card key={draw.id}>
+            <Card key={draw.id} className="overflow-hidden border-border/70 bg-card/85 shadow-[0_18px_40px_hsl(var(--foreground)/0.06)]">
               <CardContent className="py-4 flex flex-col sm:flex-row sm:items-center gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">

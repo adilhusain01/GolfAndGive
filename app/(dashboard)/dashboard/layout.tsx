@@ -24,11 +24,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .single();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="relative flex min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.08),transparent_28%),radial-gradient(circle_at_bottom_right,hsl(var(--accent)/0.12),transparent_26%),hsl(var(--background))]">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,transparent_0%,hsl(var(--foreground)/0.02)_48%,transparent_100%)]" />
       <DashboardSidebar profile={profile} subscription={subscription} />
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="relative flex min-h-screen flex-1 flex-col overflow-hidden">
         <DashboardHeader profile={profile} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-7xl">{children}</div>
+        </main>
       </div>
     </div>
   );

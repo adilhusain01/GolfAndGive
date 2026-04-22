@@ -54,20 +54,20 @@ export function WinnersManager({ winners: initial }: Props) {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Winners & Payouts</h1>
-          <p className="text-muted-foreground text-sm">{pendingCount} pending review</p>
+          <p className="section-label">Payout Desk</p>
+          <h1 className="mt-2 font-display text-3xl text-foreground sm:text-4xl">Winners & Payouts</h1>
+          <p className="mt-3 text-sm text-muted-foreground">{pendingCount} pending review</p>
         </div>
         {pendingCount > 0 && (
-          <Badge variant="destructive" className="gap-1.5">
+          <Badge variant="destructive" className="gap-1.5 rounded-full">
             <Clock className="size-3" /> {pendingCount} pending
           </Badge>
         )}
       </div>
 
-      {/* Summary row */}
       <div className="grid grid-cols-3 gap-4">
         {["pending", "paid", "rejected"].map((status) => {
           const count = winners.filter((w) => w.payment_status === status).length;
@@ -76,7 +76,7 @@ export function WinnersManager({ winners: initial }: Props) {
             .reduce((s, w) => s + Number(w.prize_amount), 0);
           const { icon: Icon, color } = STATUS_ICON[status];
           return (
-            <Card key={status}>
+            <Card key={status} className="overflow-hidden border-border/70 bg-card/85 shadow-[0_18px_40px_hsl(var(--foreground)/0.06)]">
               <CardContent className="pt-4">
                 <div className={`flex items-center gap-2 mb-1 ${color}`}>
                   <Icon className="size-4" />
@@ -90,8 +90,7 @@ export function WinnersManager({ winners: initial }: Props) {
         })}
       </div>
 
-      {/* Winners table */}
-      <Card>
+      <Card className="overflow-hidden border-border/70 bg-card/85 shadow-[0_18px_40px_hsl(var(--foreground)/0.06)]">
         <CardContent className="p-0 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

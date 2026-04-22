@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, ExternalLink } from "lucide-react";
+import { Heart, ArrowUpRight } from "lucide-react";
 
 interface Charity {
   id:          string;
@@ -22,27 +22,38 @@ export function CharityGrid({ charities }: { charities: Charity[] }) {
   }
 
   return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {charities.map((c) => (
         <Link key={c.id} href={`/charities/${c.slug}`}>
-          <Card className="h-full hover:border-primary/40 transition-colors group">
-            <CardContent className="pt-5">
-              <div className="flex items-start gap-3 mb-3">
-                <div className="relative size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+          <Card className="paper-panel group h-full overflow-hidden border-border/70 transition-all duration-300 hover:-translate-y-1 hover:border-primary/40">
+            <CardContent className="p-0">
+              <div className="relative overflow-hidden border-b border-border/60 bg-gradient-to-br from-primary/10 via-background to-accent/10 px-5 py-6">
+                <div className="absolute -right-5 -top-7 h-24 w-24 rounded-full bg-accent/15 blur-2xl transition-transform duration-500 group-hover:scale-125" />
+                <div className="relative flex items-start gap-3">
+                  <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-background shadow-sm">
                   {c.logo_url
-                    ? <Image src={c.logo_url} alt={c.name} fill sizes="40px" className="object-cover" unoptimized />
+                    ? <Image src={c.logo_url} alt={c.name} fill sizes="48px" className="object-cover" unoptimized />
                     : <Heart className="size-4 text-primary" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold group-hover:text-primary transition-colors flex items-center gap-1">
-                    {c.name}
-                    <ExternalLink className="size-3 opacity-0 group-hover:opacity-60 transition-opacity" />
-                  </p>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-display text-2xl leading-none transition-colors group-hover:text-primary">
+                      {c.name}
+                    </p>
+                    <p className="mt-2 text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                      Partner profile
+                    </p>
+                  </div>
                 </div>
               </div>
-              {c.description && (
-                <p className="text-sm text-muted-foreground line-clamp-2">{c.description}</p>
-              )}
+              <div className="px-5 py-5">
+                {c.description && (
+                  <p className="line-clamp-3 text-sm leading-7 text-muted-foreground">{c.description}</p>
+                )}
+                <div className="mt-5 flex items-center gap-2 text-sm font-medium text-primary">
+                  Explore charity
+                  <ArrowUpRight className="size-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                </div>
+              </div>
             </CardContent>
           </Card>
         </Link>

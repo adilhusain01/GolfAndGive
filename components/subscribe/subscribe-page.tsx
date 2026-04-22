@@ -3,17 +3,12 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Loader2, Check, Heart, Trophy, Zap } from "lucide-react";
+import { Check, Heart, Loader2, ShieldCheck, Sparkles, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const PLANS = [
@@ -22,7 +17,7 @@ const PLANS = [
     label: "Monthly",
     price: "₹499",
     period: "/month",
-    desc: "Billed monthly. Cancel anytime.",
+    desc: "A clean monthly cadence with full access to score entry and draw participation.",
     badge: null,
   },
   {
@@ -30,7 +25,7 @@ const PLANS = [
     label: "Yearly",
     price: "₹4,799",
     period: "/year",
-    desc: "Save ~20% vs monthly.",
+    desc: "The discounted annual route for members who want longer-term consistency.",
     badge: "Best value",
   },
 ] as const;
@@ -45,7 +40,10 @@ interface Props {
   pendingConfirmation?: boolean;
 }
 
-export function SubscribePage({ charities, pendingConfirmation = false }: Props) {
+export function SubscribePage({
+  charities,
+  pendingConfirmation = false,
+}: Props) {
   const [plan, setPlan] = useState<"monthly" | "yearly">("monthly");
   const [charityId, setCharityId] = useState<string>(charities[0]?.id ?? "");
   const [pct, setPct] = useState(10);
@@ -57,6 +55,7 @@ export function SubscribePage({ charities, pendingConfirmation = false }: Props)
     }
   }, [charities, charityId]);
 
+  const currentPlan = PLANS.find((entry) => entry.key === plan) ?? PLANS[0];
   const charityAmt =
     plan === "yearly"
       ? ((4799 * pct) / 100).toFixed(0)
@@ -67,6 +66,7 @@ export function SubscribePage({ charities, pendingConfirmation = false }: Props)
       toast.error("Please select a charity first.");
       return;
     }
+
     setLoading(true);
     try {
       const res = await fetch("/api/payments/create-checkout", {
@@ -93,165 +93,206 @@ export function SubscribePage({ charities, pendingConfirmation = false }: Props)
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-12 px-4 space-y-8">
-      {pendingConfirmation && (
-        <Card className="border-primary/30 bg-primary/5">
-          <CardContent className="pt-6 text-sm text-muted-foreground">
-            Payment completed. We&apos;re waiting for the subscription webhook to
-            activate your account. This usually takes a moment.
-          </CardContent>
-        </Card>
-      )}
+    <main className="mx-auto w-full max-w-6xl px-4 py-12">
+      <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="paper-panel rounded-[2.5rem] border border-border/70 px-6 py-8 md:px-8 md:py-10">
+          <span className="section-label mb-5">
+            <Sparkles className="size-3.5" />
+            Membership design
+          </span>
+          <h1 className="editorial-kicker max-w-xl">
+            Join the score-led giving cycle.
+          </h1>
+          <p className="mt-5 max-w-lg text-base leading-8 text-muted-foreground">
+            Membership combines score retention, monthly draw eligibility, and a
+            charity destination that stays attached to each billing cycle.
+          </p>
 
-      <div className="text-center">
-        <h1 className="text-3xl font-bold">Choose your plan</h1>
-        <p className="text-muted-foreground mt-2">
-          One subscription. Prizes, golf tracking, and charity impact.
-        </p>
-      </div>
+          {pendingConfirmation && (
+            <Card className="mt-6 border-primary/30 bg-primary/5">
+              <CardContent className="pt-6 text-sm leading-7 text-muted-foreground">
+                Payment completed. We&apos;re waiting for the subscription webhook to
+                activate your account. This usually takes a moment.
+              </CardContent>
+            </Card>
+          )}
 
-      {/* ── Plan picker ───────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-4">
-        {PLANS.map((p) => (
-          <Card
-            key={p.key}
-            onClick={() => setPlan(p.key)}
-            className={cn(
-              "cursor-pointer transition-all border-2",
-              plan === p.key ? "border-primary" : "border-transparent",
-            )}
-          >
-            <CardHeader className="pb-2">
-              <div className="flex items-start justify-between">
-                <CardTitle className="text-base">{p.label}</CardTitle>
-                {p.badge && <Badge className="text-xs">{p.badge}</Badge>}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {p.price}
-                <span className="text-sm font-normal text-muted-foreground">
-                  {p.period}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">{p.desc}</p>
-              {plan === p.key && (
-                <div className="mt-2 flex items-center gap-1 text-primary text-xs font-medium">
-                  <Check className="size-3.5" /> Selected
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* What's included */}
-      <Card className="bg-muted/30">
-        <CardContent className="pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-          {[
-            { icon: Trophy, text: "Monthly prize draws" },
-            { icon: Zap, text: "Score tracking & history" },
-            { icon: Heart, text: "Charity contribution" },
-          ].map(({ icon: Icon, text }) => (
-            <div
-              key={text}
-              className="flex items-center gap-2 text-muted-foreground"
-            >
-              <Icon className="size-4 text-primary" /> {text}
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* ── Charity selector ──────────────────────────── */}
-      <div className="space-y-3">
-        <Label className="text-base font-semibold">Choose your charity</Label>
-
-        {charities.length === 0 ? (
-          <div className="rounded-xl border border-border bg-muted p-6 text-sm text-muted-foreground">
-            No active charities are available right now. Please check back
-            later.
-          </div>
-        ) : (
-          <div className="grid gap-2">
-            {charities.map((c) => (
+          <div className="mt-8 grid gap-4">
+            {[
+              {
+                icon: Trophy,
+                title: "Prize draw participation",
+                copy: "Retained scores feed into the monthly published draw once all five slots are present.",
+              },
+              {
+                icon: Heart,
+                title: "Charity percentage control",
+                copy: "Start at 10% and push far beyond it if you want more of the subscription directed outward.",
+              },
+              {
+                icon: ShieldCheck,
+                title: "Managed subscription lifecycle",
+                copy: "Activation, renewal, cancellation, and draw access are tied to the backend lifecycle rules.",
+              },
+            ].map(({ icon: Icon, title, copy }) => (
               <div
-                key={c.id}
-                onClick={() => setCharityId(c.id)}
-                className={cn(
-                  "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
-                  charityId === c.id
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/40",
-                )}
+                key={title}
+                className="rounded-[1.6rem] border border-border/60 bg-background/70 px-4 py-4"
               >
-                <div className="relative size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
-                  {c.logo_url ? (
-                    <Image
-                      src={c.logo_url}
-                      alt={c.name}
-                      fill
-                      sizes="40px"
-                      className="object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    <Heart className="size-4 text-primary" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm">{c.name}</p>
-                  {c.description && (
-                    <p className="text-xs text-muted-foreground truncate">
-                      {c.description}
-                    </p>
-                  )}
-                </div>
-                {charityId === c.id && (
-                  <Check className="size-4 text-primary shrink-0" />
-                )}
+                <Icon className="size-4 text-primary" />
+                <p className="mt-3 font-medium">{title}</p>
+                <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                  {copy}
+                </p>
               </div>
             ))}
           </div>
-        )}
-      </div>
-
-      {/* ── Charity % slider ──────────────────────────── */}
-      <div className="space-y-3">
-        <div className="flex justify-between items-center">
-          <Label className="text-base font-semibold">
-            Charity contribution
-          </Label>
-          <span className="text-primary font-bold text-lg">{pct}%</span>
         </div>
-        <Slider
-          min={10}
-          max={100}
-          step={5}
-          value={pct}
-          onChange={(event) => setPct(Number(event.target.value))}
-          className="py-2"
-        />
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>Min 10%</span>
-          <span>₹{charityAmt} goes to your charity</span>
+
+        <div className="paper-panel rounded-[2.5rem] border border-border/70 px-6 py-8 md:px-8 md:py-10">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <span className="section-label mb-5">Configure membership</span>
+              <h2 className="font-display text-4xl">Choose a plan and a cause.</h2>
+            </div>
+            <Badge variant="outline" className="hidden sm:inline-flex">
+              Secure checkout
+            </Badge>
+          </div>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            {PLANS.map((entry) => (
+              <Card
+                key={entry.key}
+                onClick={() => setPlan(entry.key)}
+                className={cn(
+                  "cursor-pointer border border-border/70 bg-background/70 transition-all duration-200",
+                  plan === entry.key && "border-primary shadow-[0_16px_30px_hsl(var(--primary)/0.12)]",
+                )}
+              >
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <CardTitle className="font-display text-3xl">
+                      {entry.label}
+                    </CardTitle>
+                    {entry.badge && <Badge>{entry.badge}</Badge>}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-semibold">
+                    {entry.price}
+                    <span className="ml-1 text-sm font-normal text-muted-foreground">
+                      {entry.period}
+                    </span>
+                  </div>
+                  <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                    {entry.desc}
+                  </p>
+                  {plan === entry.key && (
+                    <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary/8 px-3 py-1 text-xs font-medium text-primary">
+                      <Check className="size-3.5" />
+                      Selected
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="mt-8 space-y-3">
+            <div className="flex items-end justify-between gap-3">
+              <Label className="text-base font-semibold">Choose your charity</Label>
+              <p className="text-xs text-muted-foreground">
+                {charities.length} active options
+              </p>
+            </div>
+
+            {charities.length === 0 ? (
+              <div className="rounded-[1.6rem] border border-border bg-muted p-6 text-sm text-muted-foreground">
+                No active charities are available right now. Please check back later.
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {charities.map((charity) => (
+                  <div
+                    key={charity.id}
+                    onClick={() => setCharityId(charity.id)}
+                    className={cn(
+                      "flex cursor-pointer items-center gap-4 rounded-[1.6rem] border border-border/70 bg-background/70 px-4 py-4 transition-all duration-200",
+                      charityId === charity.id &&
+                        "border-primary bg-primary/[0.04] shadow-[0_14px_28px_hsl(var(--primary)/0.08)]",
+                    )}
+                  >
+                    <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/8">
+                      {charity.logo_url ? (
+                        <Image
+                          src={charity.logo_url}
+                          alt={charity.name}
+                          fill
+                          sizes="48px"
+                          className="object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <Heart className="size-4 text-primary" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium">{charity.name}</p>
+                      {charity.description && (
+                        <p className="mt-1 line-clamp-2 text-sm leading-7 text-muted-foreground">
+                          {charity.description}
+                        </p>
+                      )}
+                    </div>
+                    {charityId === charity.id && (
+                      <div className="rounded-full bg-primary px-2 py-2 text-primary-foreground">
+                        <Check className="size-3.5" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-8 rounded-[2rem] border border-border/70 bg-background/70 px-5 py-5">
+            <div className="flex items-center justify-between gap-3">
+              <Label className="text-base font-semibold">Charity contribution</Label>
+              <p className="font-display text-4xl leading-none text-primary">{pct}%</p>
+            </div>
+            <p className="mt-2 text-sm leading-7 text-muted-foreground">
+              Your current selection routes approximately ₹{charityAmt} from the {currentPlan.label.toLowerCase()} plan toward the chosen charity.
+            </p>
+            <Slider
+              min={10}
+              max={100}
+              step={5}
+              value={pct}
+              onChange={(event) => setPct(Number(event.target.value))}
+              className="mt-5 py-2"
+            />
+            <div className="mt-3 flex justify-between text-xs text-muted-foreground">
+              <span>Minimum 10%</span>
+              <span>Maximum 100%</span>
+            </div>
+          </div>
+
+          <Button
+            size="lg"
+            className="mt-8 w-full text-base"
+            onClick={handleSubscribe}
+            disabled={loading || !charityId}
+          >
+            {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
+            Continue to checkout · {currentPlan.price}
+          </Button>
+
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Secure checkout via DodoPayments. Membership can be cancelled from the account area.
+          </p>
         </div>
       </div>
-
-      {/* ── CTA ───────────────────────────────────────── */}
-      <Button
-        size="lg"
-        className="w-full text-base h-12"
-        onClick={handleSubscribe}
-        disabled={loading || !charityId}
-      >
-        {loading && <Loader2 className="size-4 mr-2 animate-spin" />}
-        Subscribe {plan === "yearly" ? "Yearly · ₹4,799" : "Monthly · ₹499"}
-      </Button>
-
-      <p className="text-center text-xs text-muted-foreground">
-        Secure checkout via DodoPayments. Cancel anytime.
-      </p>
-    </div>
+    </main>
   );
 }

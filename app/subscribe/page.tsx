@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { SubscribePage } from "@/components/subscribe/subscribe-page";
 import { Navbar } from "@/components/shared/navbar";
+import { Footer } from "@/components/shared/footer";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Subscribe" };
@@ -19,12 +20,13 @@ export default async function SubscribeRoute({
     .order("is_featured", { ascending: false });
 
   return (
-    <div className="min-h-screen">
+    <div className="editorial-shell min-h-screen">
       <Navbar />
       <SubscribePage
         charities={charities ?? []}
         pendingConfirmation={searchParams?.success === "1"}
       />
+      <Footer />
     </div>
   );
 }

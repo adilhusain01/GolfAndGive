@@ -4,32 +4,32 @@ import { Badge } from "@/components/ui/badge";
 
 export function RecentUsersTable({ users }: { users: any[] }) {
   return (
-    <Card>
+    <Card className="overflow-hidden border-border/70 bg-card/85 shadow-[0_18px_40px_hsl(var(--foreground)/0.06)]">
       <CardHeader>
         <CardTitle className="text-sm font-medium">Recent Signups</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b">
+          <thead className="bg-muted/35">
+            <tr className="border-b border-border/70">
               {["Name", "Role", "Joined"].map((h) => (
-                <th key={h} className="text-left text-xs font-medium text-muted-foreground px-4 py-2">{h}</th>
+                <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y">
             {users.map((u) => (
               <tr key={u.id} className="hover:bg-muted/20">
-                <td className="px-4 py-2.5">
+                <td className="px-4 py-3">
                   <p className="font-medium text-sm truncate max-w-[140px]">{u.full_name}</p>
                   <p className="text-xs text-muted-foreground truncate max-w-[140px]">{u.email}</p>
                 </td>
-                <td className="px-4 py-2.5">
-                  <Badge variant={u.role === "admin" ? "default" : "secondary"} className="text-xs">
+                <td className="px-4 py-3">
+                  <Badge variant={u.role === "admin" ? "default" : "secondary"} className="rounded-full text-xs">
                     {u.role}
                   </Badge>
                 </td>
-                <td className="px-4 py-2.5 text-xs text-muted-foreground">
+                <td className="px-4 py-3 text-xs text-muted-foreground">
                   {formatDate(u.created_at)}
                 </td>
               </tr>

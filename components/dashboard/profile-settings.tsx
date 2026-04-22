@@ -75,28 +75,32 @@ export function ProfileSettings({ profile }: { profile: any }) {
     ?.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2) ?? "?";
 
   return (
-    <Card>
+    <Card className="overflow-hidden border-border/70 bg-card/85 shadow-[0_22px_50px_hsl(var(--foreground)/0.06)]">
       <CardHeader>
         <CardTitle>Profile</CardTitle>
-        <CardDescription>Update your name and avatar.</CardDescription>
+        <CardDescription>Update your name, photo, and member-facing details.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
-        {/* Avatar */}
-        <div className="flex items-center gap-4">
-          <Avatar className="size-16">
-            <AvatarImage src={avatarUrl} />
-            <AvatarFallback className="text-lg bg-primary/10 text-primary">{initials}</AvatarFallback>
-          </Avatar>
-          <div>
-            <Button
-              variant="outline" size="sm" className="gap-2"
-              onClick={() => fileRef.current?.click()}
-              disabled={uploading}
-            >
-              {uploading ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
-              Change photo
-            </Button>
-            <p className="text-xs text-muted-foreground mt-1">JPG, PNG up to 2MB</p>
+        <div className="rounded-[1.7rem] border border-border/70 bg-[linear-gradient(180deg,hsl(var(--background)),hsl(var(--accent)/0.1))] p-5">
+          <div className="flex items-center gap-4">
+            <Avatar className="size-20 border border-border/60">
+              <AvatarImage src={avatarUrl} />
+              <AvatarFallback className="text-lg bg-primary/10 text-primary">{initials}</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-display text-2xl">{profile?.full_name ?? "Member"}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{profile?.email}</p>
+              <p className="mt-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">Profile portrait</p>
+              <Button
+                variant="outline" size="sm" className="mt-2 gap-2 rounded-full"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+              >
+                {uploading ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
+                Change photo
+              </Button>
+              <p className="mt-1 text-xs text-muted-foreground">JPG, PNG up to 2MB</p>
+            </div>
           </div>
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
         </div>
@@ -118,7 +122,7 @@ export function ProfileSettings({ profile }: { profile: any }) {
             <Input value={profile?.email ?? ""} disabled className="bg-muted" />
             <p className="text-xs text-muted-foreground">Email cannot be changed here.</p>
           </div>
-          <Button type="submit" disabled={!isDirty || isSubmitting} className="gap-2">
+          <Button type="submit" disabled={!isDirty || isSubmitting} className="gap-2 rounded-full px-5">
             {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
             Save profile
           </Button>

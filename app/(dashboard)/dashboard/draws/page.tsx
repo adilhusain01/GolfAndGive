@@ -34,16 +34,17 @@ export default async function DashboardDrawsPage() {
     .order("created_at", { ascending: false })) as { data: DrawEntry[] | null };
 
   return (
-    <div className="max-w-3xl space-y-6 animate-fade-in">
+    <div className="max-w-5xl space-y-8 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold">My Draw History</h1>
-        <p className="text-muted-foreground text-sm mt-1">
+        <p className="section-label">Archive</p>
+        <h1 className="mt-2 font-display text-3xl text-foreground sm:text-4xl">My Draw History</h1>
+        <p className="mt-3 text-sm text-muted-foreground">
           All monthly draws you've participated in.
         </p>
       </div>
 
       {!entries || entries.length === 0 ? (
-        <Card>
+        <Card className="border-border/70 bg-card/80">
           <CardContent className="py-12 text-center text-muted-foreground">
             <Trophy className="size-10 mx-auto mb-3 opacity-30" />
             <p>
@@ -54,7 +55,7 @@ export default async function DashboardDrawsPage() {
       ) : (
         <div className="space-y-3">
           {entries.map((entry) => (
-            <Card key={entry.id}>
+            <Card key={entry.id} className="overflow-hidden border-border/70 bg-card/85 shadow-[0_12px_30px_hsl(var(--foreground)/0.05)]">
               <CardContent className="py-4">
                 <div className="flex items-start justify-between mb-3">
                   <div>
@@ -132,7 +133,6 @@ export default async function DashboardDrawsPage() {
                     <p className="text-xs text-muted-foreground mt-2">
                       Matched <strong>{entry.match_count}</strong> number
                       {entry.match_count !== 1 ? "s" : ""}
-                      {entry.match_count >= 3 ? " 🎉" : ""}
                     </p>
                   )}
               </CardContent>

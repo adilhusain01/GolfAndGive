@@ -2,6 +2,13 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { splitSubscription } from "@/lib/dodo/client";
+import {
+  safelySendEmail,
+  sendDonationReceiptEmail,
+  sendSubscriptionActivatedEmail,
+  sendSubscriptionCancelledEmail,
+  sendSubscriptionRenewedEmail,
+} from "@/lib/notifications";
 
 function getWebhookSecret() {
   return (
@@ -132,6 +139,69 @@ export async function POST(req: NextRequest) {
       // ── Payment succeeded — activate subscription ──────────
       case "payment.succeeded": {
         const meta = event.data?.metadata ?? {};
+        if (meta.kind === "donation") {
+          const charityId = meta.charity_id;
+          const paymentId = event.data?.payment_id;
+          const amountPence = Number(event.data?.total_amount ?? 0);
+          const donorEmail = meta.donor_email ?? event.data?.customer?.email;
+          const donorName = meta.donor_name ?? event.data?.customer?.name;
+
+          const [{ data: charity }, { data: donation }] = await Promise.all([
+            charityId
+              ? supabase
+                  .from("charities")
+                  .select("name")
+                  .eq("id", charityId)
+                  .maybeSingle()
+              : Promise.resolve({ data: null }),
+            paymentId
+              ? supabase
+                  .from("donations")
+                  .select("id")
+                  .eq("dodo_payment_id", paymentId)
+                  .maybeSingle()
+              : Promise.resolve({ data: null }),
+          ]);
+
+          if (paymentId) {
+            if (donation?.id) {
+              await (supabase.from("donations") as any)
+                .update({
+                  status: "succeeded",
+                  amount_pence: amountPence,
+                  currency: event.data?.currency ?? "INR",
+                })
+                .eq("id", donation.id);
+            } else {
+              await (supabase.from("donations") as any).insert({
+                user_id: meta.donor_user_id || null,
+                charity_id: charityId,
+                donor_name: donorName ?? "Donor",
+                donor_email: donorEmail,
+                amount_pence: amountPence,
+                currency: event.data?.currency ?? "INR",
+                status: "succeeded",
+                dodo_payment_id: paymentId,
+                dodo_customer_id: event.data?.customer?.customer_id ?? null,
+                message: meta.message || null,
+              });
+            }
+          }
+
+          if (donorEmail && charity?.name) {
+            await safelySendEmail("donation receipt", () =>
+              sendDonationReceiptEmail({
+                to: donorEmail,
+                donorName,
+                charityName: charity.name,
+                amountPence,
+              }),
+            );
+          }
+
+          break;
+        }
+
         const userId = meta.user_id;
         if (!userId) break;
 
@@ -167,6 +237,21 @@ export async function POST(req: NextRequest) {
           .select()
           .single();
 
+        const [{ data: profile }, { data: charity }] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("full_name, email")
+            .eq("id", userId)
+            .maybeSingle(),
+          charityId
+            ? supabase
+                .from("charities")
+                .select("name")
+                .eq("id", charityId)
+                .maybeSingle()
+            : Promise.resolve({ data: null }),
+        ]);
+
         // Record charity contribution
         if (sub && charityId) {
           const split = splitSubscription(amountPence, charityPercentage);
@@ -181,6 +266,18 @@ export async function POST(req: NextRequest) {
           });
         }
 
+        if (profile?.email) {
+          await safelySendEmail("subscription activated", () =>
+            sendSubscriptionActivatedEmail({
+              to: profile.email,
+              fullName: profile.full_name,
+              plan,
+              amountPence,
+              charityName: charity?.name,
+            }),
+          );
+        }
+
         break;
       }
 
@@ -189,12 +286,36 @@ export async function POST(req: NextRequest) {
       case "subscription.ended": {
         const subId = event.data?.id ?? event.data?.subscription_id;
         if (subId) {
-          await (supabase.from("subscriptions") as any)
+          const { data: cancelledSubscription } = await (supabase.from(
+            "subscriptions",
+          ) as any)
             .update({
               status: "cancelled",
               cancelled_at: new Date().toISOString(),
             })
             .eq("dodo_subscription_id", subId);
+
+          const userId = event.data?.metadata?.user_id;
+          if (userId) {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("full_name, email")
+              .eq("id", userId)
+              .maybeSingle();
+
+            if (profile?.email) {
+              await safelySendEmail("subscription cancelled", () =>
+                sendSubscriptionCancelledEmail({
+                  to: profile.email,
+                  fullName: profile.full_name,
+                  currentPeriodEnd:
+                    cancelledSubscription?.[0]?.current_period_end ??
+                    event.data?.next_billing_date ??
+                    null,
+                }),
+              );
+            }
+          }
         }
         break;
       }
@@ -241,6 +362,27 @@ export async function POST(req: NextRequest) {
                 period_end:
                   event.data?.next_billing_date ?? periodEnd.toISOString(),
               });
+            }
+          }
+
+          if (sub && userId) {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("full_name, email")
+              .eq("id", userId)
+              .maybeSingle();
+
+            if (profile?.email) {
+              await safelySendEmail("subscription renewed", () =>
+                sendSubscriptionRenewedEmail({
+                  to: profile.email,
+                  fullName: profile.full_name,
+                  plan,
+                  amountPence: sub.amount_pence,
+                  nextBillingDate:
+                    event.data?.next_billing_date ?? sub.current_period_end,
+                }),
+              );
             }
           }
         }

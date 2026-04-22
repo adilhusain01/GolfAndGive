@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Users, Calendar, Heart, Trophy, BarChart3, ShieldCheck, ChevronRight } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { LayoutDashboard, Users, Calendar, Heart, Trophy, BarChart3, ShieldCheck, ChevronRight, ArrowUpRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const NAV = [
   { href: "/admin",           icon: LayoutDashboard, label: "Overview"   },
@@ -19,39 +19,69 @@ export function AdminSidebar({ profile: _profile }: { profile: any }) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-60 border-r bg-card flex flex-col shrink-0">
-      <div className="p-5 flex items-center gap-2.5">
-        <div className="size-8 rounded-xl bg-primary flex items-center justify-center">
-          <ShieldCheck className="size-4 text-primary-foreground" />
+    <aside className="hidden w-[300px] shrink-0 border-r border-border/70 bg-background/60 backdrop-blur-xl lg:flex">
+      <div className="flex h-full w-full flex-col">
+        <div className="p-5">
+          <div className="paper-panel overflow-hidden border-border/70 bg-[linear-gradient(180deg,hsl(var(--card)),hsl(var(--card)/0.92))] p-4 shadow-[0_18px_50px_hsl(var(--foreground)/0.08)]">
+            <div className="flex items-center gap-3">
+              <div className="flex size-11 items-center justify-center rounded-[1.2rem] bg-primary text-primary-foreground shadow-[0_14px_28px_hsl(var(--primary)/0.28)]">
+                <ShieldCheck className="size-5" />
+              </div>
+              <div>
+                <p className="font-display text-xl leading-none">Operations</p>
+                <p className="mt-1 text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                  Golf & Give
+                </p>
+              </div>
+            </div>
+
+            <div className="soft-rule my-4" />
+
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                  Access level
+                </p>
+                <p className="mt-2 text-sm font-medium">Admin controls enabled</p>
+              </div>
+              <Badge className="rounded-full">Live</Badge>
+            </div>
+          </div>
         </div>
-        <div>
-          <p className="font-bold text-sm">Admin Panel</p>
-          <p className="text-xs text-muted-foreground">Golf & Give</p>
+
+        <div className="px-5 pb-3">
+          <p className="section-label">Console</p>
         </div>
-      </div>
-      <Separator />
-      <nav className="flex-1 p-3 space-y-0.5">
+
+        <nav className="flex-1 space-y-1 px-4">
         {NAV.map(({ href, icon: Icon, label }) => (
           <Link
             key={href}
             href={href}
             className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+              "group flex items-center gap-3 rounded-2xl border px-3 py-3 text-sm font-medium transition-all",
               pathname === href || (href !== "/admin" && pathname.startsWith(href))
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-accent/10"
+                ? "border-primary/20 bg-primary text-primary-foreground shadow-[0_16px_36px_hsl(var(--primary)/0.26)]"
+                : "border-transparent text-muted-foreground hover:border-border/70 hover:bg-card/70 hover:text-foreground"
             )}
           >
             <Icon className="size-4 shrink-0" />
             {label}
+            <ChevronRight className="ml-auto size-3 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
           </Link>
         ))}
-      </nav>
-      <Separator />
-      <div className="p-4">
-        <Link href="/dashboard" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-          <ChevronRight className="size-3 rotate-180" /> Back to Dashboard
+        </nav>
+
+        <div className="p-4">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 rounded-[1.4rem] border border-border/70 bg-card/80 px-4 py-3 text-sm text-muted-foreground transition hover:text-foreground"
+          >
+            <ChevronRight className="size-3.5 rotate-180" />
+            Back to Dashboard
+            <ArrowUpRight className="ml-auto size-3.5 opacity-60" />
         </Link>
+        </div>
       </div>
     </aside>
   );

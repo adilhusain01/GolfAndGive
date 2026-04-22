@@ -13,7 +13,7 @@ export function DrawStatsChart({ draws }: { draws: any[] }) {
   }));
 
   return (
-    <Card>
+    <Card className="overflow-hidden border-border/70 bg-card/85 shadow-[0_18px_40px_hsl(var(--foreground)/0.06)]">
       <CardHeader>
         <CardTitle className="text-sm font-medium">Prize Pools (Recent Draws)</CardTitle>
       </CardHeader>

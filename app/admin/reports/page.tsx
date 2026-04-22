@@ -23,7 +23,7 @@ export default async function AdminReportsPage() {
       .order("draw_month"),
     supabase
       .from("subscriptions")
-      .select("created_at, plan, status")
+      .select("user_id, created_at, plan, status")
       .order("created_at"),
   ]);
 

@@ -114,8 +114,8 @@ export function ScoreWidget({ scores: initialScores, userId }: Props) {
 
   return (
     <>
-      <Card>
-        <CardHeader>
+      <Card className="overflow-hidden border-border/70 bg-card/85 shadow-[0_22px_50px_hsl(var(--foreground)/0.06)]">
+        <CardHeader className="border-b border-border/60 bg-[linear-gradient(180deg,hsl(var(--card)),transparent)]">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
@@ -131,12 +131,12 @@ export function ScoreWidget({ scores: initialScores, userId }: Props) {
                 <div className="flex items-center gap-1 text-muted-foreground text-xs">
                   <TrendingUp className="size-3" /> Avg
                 </div>
-                <span className="text-xl font-bold text-primary">{avg}</span>
+                <span className="font-display text-3xl text-primary">{avg}</span>
               </div>
               <Button
                 size="sm" onClick={() => setAddOpen(true)}
                 disabled={isPending}
-                className="gap-1.5"
+                className="gap-1.5 rounded-full px-4"
               >
                 <Plus className="size-4" />
                 Add Score
@@ -145,7 +145,33 @@ export function ScoreWidget({ scores: initialScores, userId }: Props) {
           </div>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-3">
+            {[
+              {
+                label: "Scores retained",
+                value: `${scores.length}/5`,
+                note: scores.length === 5 ? "Ready for draw logic" : "Complete the five-score set",
+              },
+              {
+                label: "Highest round",
+                value: scores.length ? Math.max(...scores.map((score) => score.score)).toString() : "—",
+                note: "Stableford points",
+              },
+              {
+                label: "Average",
+                value: avg,
+                note: "Across retained rounds",
+              },
+            ].map((item) => (
+              <div key={item.label} className="rounded-[1.5rem] border border-border/70 bg-background/70 p-4">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{item.label}</p>
+                <p className="mt-3 font-display text-3xl leading-none">{item.value}</p>
+                <p className="mt-2 text-xs text-muted-foreground">{item.note}</p>
+              </div>
+            ))}
+          </div>
+
           {scores.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Target className="size-10 mx-auto mb-3 opacity-30" />
@@ -160,9 +186,9 @@ export function ScoreWidget({ scores: initialScores, userId }: Props) {
                 .map((sc, i) => (
                   <div
                     key={sc.id}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-muted/40 hover:bg-muted/60 transition-colors"
+                    className="flex items-center gap-3 rounded-[1.35rem] border border-border/70 bg-background/75 p-3 transition-colors hover:bg-background"
                   >
-                    <Badge variant="outline" className="w-6 h-6 p-0 justify-center text-xs font-bold">
+                    <Badge variant="outline" className="h-7 w-7 justify-center rounded-full p-0 text-xs font-bold">
                       {i + 1}
                     </Badge>
                     <div className="flex-1">
@@ -170,7 +196,7 @@ export function ScoreWidget({ scores: initialScores, userId }: Props) {
                         {format(new Date(sc.score_date), "dd MMM yyyy")}
                       </span>
                     </div>
-                    <span className="text-2xl font-bold text-primary">{sc.score}</span>
+                    <span className="font-display text-3xl text-primary">{sc.score}</span>
                     <span className="text-xs text-muted-foreground hidden sm:block">pts</span>
                     <div className="flex gap-1">
                       <Button

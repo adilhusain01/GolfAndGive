@@ -78,31 +78,32 @@ export function CharitySettings({ subscription, charities }: Props) {
   const charityAmt = ((monthlyTotal * pct) / 100).toFixed(0);
 
   return (
-    <div className="max-w-2xl space-y-6 animate-fade-in">
+    <div className="max-w-5xl space-y-8 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold">My Charity</h1>
-        <p className="text-muted-foreground text-sm mt-1">
+        <p className="section-label">Giving Preferences</p>
+        <h1 className="mt-2 font-display text-3xl text-foreground sm:text-4xl">My Charity</h1>
+        <p className="mt-3 text-sm text-muted-foreground">
           Choose where your contribution goes each month.
         </p>
       </div>
 
-      <Card>
+      <Card className="overflow-hidden border-border/70 bg-card/85 shadow-[0_22px_50px_hsl(var(--foreground)/0.06)]">
         <CardHeader>
           <CardTitle>Select a charity</CardTitle>
           <CardDescription>
             Changing your charity takes effect from the next billing cycle.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="grid gap-3 md:grid-cols-2">
           {charities.map((c) => (
             <div
               key={c.id}
               onClick={() => setCharityId(c.id)}
               className={cn(
-                "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
+                "flex cursor-pointer items-center gap-4 rounded-[1.5rem] border p-4 transition-all",
                 charityId === c.id
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/40",
+                  ? "border-primary bg-primary/6 shadow-[0_16px_36px_hsl(var(--primary)/0.18)]"
+                  : "border-border/80 bg-background/70 hover:border-primary/40",
               )}
             >
               <div className="relative size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
@@ -135,7 +136,7 @@ export function CharitySettings({ subscription, charities }: Props) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="overflow-hidden border-border/70 bg-card/85 shadow-[0_22px_50px_hsl(var(--foreground)/0.06)]">
         <CardHeader>
           <CardTitle>Contribution percentage</CardTitle>
           <CardDescription>
@@ -146,8 +147,8 @@ export function CharitySettings({ subscription, charities }: Props) {
           <div className="flex justify-between items-center">
             <Label>Your contribution</Label>
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-primary">{pct}%</span>
-              <Badge variant="outline">≈ ₹{charityAmt}/mo</Badge>
+              <span className="font-display text-3xl text-primary">{pct}%</span>
+              <Badge variant="outline" className="rounded-full">≈ ₹{charityAmt}/mo</Badge>
             </div>
           </div>
           <Slider
@@ -167,7 +168,7 @@ export function CharitySettings({ subscription, charities }: Props) {
       <Button
         onClick={handleSave}
         disabled={!isDirty || loading}
-        className="w-full gap-2"
+        className="w-full gap-2 rounded-full sm:w-auto sm:px-6"
       >
         {loading ? (
           <Loader2 className="size-4 animate-spin" />

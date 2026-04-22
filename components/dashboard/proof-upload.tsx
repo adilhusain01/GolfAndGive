@@ -40,16 +40,17 @@ export function ProofUpload({ winners }: Props) {
   };
 
   return (
-    <div className="max-w-2xl space-y-6 animate-fade-in">
+    <div className="max-w-4xl space-y-8 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold">Submit Winner Proof</h1>
-        <p className="text-muted-foreground text-sm mt-1">
+        <p className="section-label">Prize Verification</p>
+        <h1 className="mt-2 font-display text-3xl text-foreground sm:text-4xl">Submit Winner Proof</h1>
+        <p className="mt-3 text-sm text-muted-foreground">
           Upload a screenshot from your golf platform showing your scores to claim your prize.
         </p>
       </div>
 
       {winners.length === 0 ? (
-        <Card>
+        <Card className="border-border/70 bg-card/85">
           <CardContent className="py-12 text-center text-muted-foreground">
             <Trophy className="size-10 mx-auto mb-3 opacity-30" />
             <p className="font-medium">No pending prizes</p>
@@ -69,7 +70,7 @@ export function ProofUpload({ winners }: Props) {
         </div>
       )}
 
-      <Card className="bg-muted/30">
+      <Card className="border-border/70 bg-[linear-gradient(180deg,hsl(var(--card)),hsl(var(--accent)/0.1))]">
         <CardHeader>
           <CardTitle className="text-sm">What to upload</CardTitle>
           <CardDescription>Your proof screenshot must clearly show:</CardDescription>
@@ -96,7 +97,7 @@ function ProofCard({
   const hasProof = !!winner.proof_url;
 
   return (
-    <Card className={hasProof ? "border-primary/40" : ""}>
+    <Card className={hasProof ? "border-primary/40 bg-card/85 shadow-[0_18px_40px_hsl(var(--foreground)/0.06)]" : "border-border/70 bg-card/85 shadow-[0_18px_40px_hsl(var(--foreground)/0.06)]"}>
       <CardContent className="py-4 space-y-3">
         <div className="flex items-start justify-between">
           <div>
@@ -119,7 +120,7 @@ function ProofCard({
         </div>
 
         {hasProof ? (
-          <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/40">
+          <div className="flex items-center gap-3 rounded-[1.25rem] border border-border/70 bg-background/70 p-3">
             <ImageIcon className="size-4 text-muted-foreground" />
             <a
               href={winner.proof_url}
@@ -142,7 +143,7 @@ function ProofCard({
         ) : (
           <Button
             variant="outline"
-            className="w-full gap-2 border-dashed"
+            className="w-full gap-2 rounded-[1.25rem] border-dashed"
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
           >

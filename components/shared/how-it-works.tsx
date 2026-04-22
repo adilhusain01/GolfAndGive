@@ -26,32 +26,34 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-24 px-4">
+    <section id="how-it-works" className="px-4 py-24">
       <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-3">How Golf & Give works</h2>
-          <p className="text-muted-foreground max-w-md mx-auto">
-            Three simple steps. Every month. Real impact.
+        <div className="mb-16 text-center">
+          <span className="section-label mb-5">How it works</span>
+          <h2 className="editorial-kicker mx-auto max-w-3xl">
+            Three actions. One recurring cycle of competition, generosity, and proof.
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-8 text-muted-foreground">
+            The platform is intentionally simple for members and highly structured under the hood: retained scores, monthly draw logic, and a charity destination attached to every active subscription.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 relative">
-          {/* Connector line (desktop) */}
-          <div className="hidden md:block absolute top-10 left-[calc(16.67%+1rem)] right-[calc(16.67%+1rem)] h-px bg-border" />
+        <div className="relative grid gap-8 md:grid-cols-3">
+          <div className="absolute left-[calc(16.67%+1rem)] right-[calc(16.67%+1rem)] top-10 hidden h-px bg-border md:block" />
 
           {STEPS.map(({ icon: Icon, step, title, desc, color }, i) => (
-            <div key={step} className="relative text-center">
-              <div className={`mx-auto mb-5 size-20 rounded-2xl ${color} flex items-center justify-center relative z-10 bg-background`}>
-                <div className={`size-16 rounded-xl flex items-center justify-center ${color}`}>
+            <div key={step} className="relative">
+              <div className="paper-panel relative rounded-[2rem] border border-border/70 px-6 py-8 text-center">
+                <span className="section-label mb-5">{step}</span>
+                <div className={`relative z-10 mx-auto mb-5 flex size-20 items-center justify-center rounded-[1.5rem] ${color} bg-background`}>
                   <Icon className="size-7" />
                 </div>
+                <h3 className="font-display text-3xl">{title}</h3>
+                <p className="mt-3 text-sm leading-7 text-muted-foreground">{desc}</p>
+                {i < STEPS.length - 1 && (
+                  <ArrowRight className="mx-auto mt-5 size-5 text-muted-foreground md:hidden" />
+                )}
               </div>
-              <span className="text-xs font-bold text-muted-foreground tracking-widest uppercase">{step}</span>
-              <h3 className="text-xl font-bold mt-1 mb-2">{title}</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">{desc}</p>
-              {i < STEPS.length - 1 && (
-                <ArrowRight className="md:hidden size-5 text-muted-foreground mx-auto mt-4" />
-              )}
             </div>
           ))}
         </div>

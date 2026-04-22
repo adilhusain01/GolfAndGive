@@ -39,7 +39,7 @@ export function SubscriptionSettings({ subscription }: { subscription: any }) {
 
   return (
     <>
-      <Card>
+      <Card className="overflow-hidden border-border/70 bg-card/85 shadow-[0_22px_50px_hsl(var(--foreground)/0.06)]">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="size-4" /> Subscription
@@ -49,48 +49,50 @@ export function SubscriptionSettings({ subscription }: { subscription: any }) {
         <CardContent className="space-y-4">
           {subscription ? (
             <>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold capitalize">{subscription.plan} Plan</p>
-                  <p className="text-sm text-muted-foreground">
-                    {subscription.amount_pence
-                      ? `₹${(subscription.amount_pence / 100).toLocaleString("en-IN")}`
-                      : "—"}
-                    {subscription.plan === "yearly" ? "/year" : "/month"}
-                  </p>
+              <div className="rounded-[1.7rem] border border-border/70 bg-[linear-gradient(180deg,hsl(var(--background)),hsl(var(--accent)/0.1))] p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-display text-2xl capitalize">{subscription.plan} plan</p>
+                    <p className="text-sm text-muted-foreground">
+                      {subscription.amount_pence
+                        ? `₹${(subscription.amount_pence / 100).toLocaleString("en-IN")}`
+                        : "—"}
+                      {subscription.plan === "yearly" ? "/year" : "/month"}
+                    </p>
+                  </div>
+                  <Badge variant={isActive ? "default" : "secondary"} className="capitalize rounded-full">
+                    {subscription.status}
+                  </Badge>
                 </div>
-                <Badge variant={isActive ? "default" : "secondary"} className="capitalize">
-                  {subscription.status}
-                </Badge>
-              </div>
 
-              {subscription.current_period_end && (
-                <div className="text-sm text-muted-foreground">
-                  {isActive
-                    ? `Renews on ${formatDate(subscription.current_period_end)}`
-                    : `Access until ${formatDate(subscription.current_period_end)}`}
-                </div>
-              )}
+                {subscription.current_period_end && (
+                  <div className="mt-4 text-sm text-muted-foreground">
+                    {isActive
+                      ? `Renews on ${formatDate(subscription.current_period_end)}`
+                      : `Access until ${formatDate(subscription.current_period_end)}`}
+                  </div>
+                )}
 
-              <Separator />
+                <Separator className="my-4" />
 
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Charity contribution</span>
-                  <span className="font-medium">{subscription.charity_percentage}%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">DodoPayments subscription ID</span>
-                  <span className="font-mono text-xs text-muted-foreground truncate max-w-[160px]">
-                    {subscription.dodo_subscription_id ?? "—"}
-                  </span>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Charity contribution</span>
+                    <span className="font-medium">{subscription.charity_percentage}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">DodoPayments subscription ID</span>
+                    <span className="font-mono text-xs text-muted-foreground truncate max-w-[160px]">
+                      {subscription.dodo_subscription_id ?? "—"}
+                    </span>
+                  </div>
                 </div>
               </div>
 
               {isActive && (
                 <Button
                   variant="outline"
-                  className="text-destructive border-destructive/30 hover:bg-destructive/5 gap-2"
+                  className="gap-2 rounded-full border-destructive/30 text-destructive hover:bg-destructive/5"
                   onClick={() => setCancelOpen(true)}
                 >
                   <AlertTriangle className="size-4" />
@@ -105,7 +107,7 @@ export function SubscriptionSettings({ subscription }: { subscription: any }) {
               )}
             </>
           ) : (
-            <div className="text-center py-6 space-y-3">
+            <div className="space-y-3 py-6 text-center">
               <p className="text-muted-foreground text-sm">No active subscription found.</p>
               <Button asChild>
                 <a href="/subscribe">Subscribe now</a>

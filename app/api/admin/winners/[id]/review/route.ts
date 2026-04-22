@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { winnerReviewSchema } from "@/lib/validations";
+import { safelySendEmail, sendWinnerReviewEmail } from "@/lib/notifications";
 
 export async function POST(
   req: NextRequest,
@@ -15,14 +16,14 @@ export async function POST(
   if (!user)
     return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
 
-  const { data: profile } = (await supabase
+  const { data: authProfile } = (await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single()) as {
     data: { role?: string | null } | null;
   };
-  if (profile?.role !== "admin")
+  if (authProfile?.role !== "admin")
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
@@ -54,6 +55,39 @@ export async function POST(
 
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const { data: winner } = await adminSupabase
+    .from("winners")
+    .select(
+      `
+      prize_tier,
+      profiles (full_name, email),
+      draws (draw_month)
+    `,
+    )
+    .eq("id", params.id)
+    .maybeSingle();
+
+  const profile = Array.isArray(winner?.profiles)
+    ? winner.profiles[0]
+    : winner?.profiles;
+  const draw = Array.isArray(winner?.draws) ? winner.draws[0] : winner?.draws;
+
+  const email = profile?.email;
+  const drawMonth = draw?.draw_month;
+
+  if (email && drawMonth && winner?.prize_tier) {
+    await safelySendEmail(`winner review ${params.id}`, () =>
+      sendWinnerReviewEmail({
+        to: email,
+        fullName: profile?.full_name,
+        paymentStatus: payment_status,
+        drawMonth,
+        prizeTier: winner.prize_tier,
+        adminNotes: admin_notes,
+      }),
+    );
+  }
 
   return NextResponse.json({ success: true });
 }

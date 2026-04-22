@@ -23,13 +23,20 @@ export default async function DashboardSettingsPage() {
   ]);
 
   return (
-    <div className="max-w-2xl space-y-8 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="text-muted-foreground text-sm mt-1">Manage your profile and subscription.</p>
+    <div className="space-y-8 animate-fade-in">
+      <div className="max-w-3xl">
+        <p className="section-label">Account Control</p>
+        <h1 className="mt-2 font-display text-3xl text-foreground sm:text-4xl">Settings</h1>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
+          Keep your member details current, update your photo, and review the subscription
+          record that controls billing and access.
+        </p>
       </div>
-      <ProfileSettings profile={profile} />
-      <SubscriptionSettings subscription={subscription} />
+
+      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <ProfileSettings profile={profile} />
+        <SubscriptionSettings subscription={subscription} />
+      </div>
     </div>
   );
 }
