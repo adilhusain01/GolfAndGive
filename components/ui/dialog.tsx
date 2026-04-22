@@ -20,14 +20,14 @@ export function Dialog({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto p-4 sm:items-center sm:p-6">
       <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm"
         onClick={() => onOpenChange(false)}
       />
       <div
         className={cn(
-          "relative z-10 m-6 w-full max-w-3xl overflow-hidden rounded-3xl border border-border bg-background shadow-2xl",
+          "relative z-10 w-full max-w-3xl overflow-hidden rounded-3xl border border-border bg-background shadow-2xl max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)]",
           className,
         )}
         {...props}
