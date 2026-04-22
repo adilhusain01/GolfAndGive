@@ -16,13 +16,9 @@ const MEMBER_PATHS = ["/dashboard"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  // Allow public paths
-  if (
-    PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))
-  ) {
-    return NextResponse.next();
-  }
+  const isPublicPath = PUBLIC_PATHS.some(
+    (p) => pathname === p || pathname.startsWith(p + "/"),
+  );
 
   let response = NextResponse.next({ request });
 
@@ -53,6 +49,10 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  if (isPublicPath) {
+    return response;
+  }
 
   // Not logged in → redirect to login
   if (!user) {
