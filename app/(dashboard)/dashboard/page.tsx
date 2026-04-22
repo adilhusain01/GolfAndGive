@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import {
   SubscriptionStatusCard,
@@ -25,6 +25,7 @@ export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
   const supabase = await createClient();
+  const adminSupabase = createAdminClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -59,7 +60,7 @@ export default async function DashboardPage() {
       .order("created_at", { ascending: false })
       .limit(5),
 
-    supabase
+    adminSupabase
       .from("draws")
       .select("*")
       .in("status", ["pending", "simulation"])

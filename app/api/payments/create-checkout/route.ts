@@ -1,11 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient, createClient } from "@/lib/supabase/server";
 import dodo, { PLANS } from "@/lib/dodo/client";
 import { subscriptionCreateSchema } from "@/lib/validations";
 
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
+    const adminSupabase = createAdminClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -22,6 +23,26 @@ export async function POST(req: NextRequest) {
 
     const { plan, charity_id, charity_percentage } = parsed.data;
     const planConfig = PLANS[plan];
+    const { data: existingSubscription } = await adminSupabase
+      .from("subscriptions")
+      .select("status, current_period_end")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const alreadySubscribed =
+      existingSubscription?.status === "active" ||
+      (existingSubscription?.status === "cancelled" &&
+        !!existingSubscription.current_period_end &&
+        new Date(existingSubscription.current_period_end).getTime() > Date.now());
+
+    if (alreadySubscribed) {
+      return NextResponse.json(
+        { error: "You already have an active subscription." },
+        { status: 409 },
+      );
+    }
 
     // Get or fetch profile for customer name/email
     const { data: profile } = (await supabase
@@ -32,9 +53,7 @@ export async function POST(req: NextRequest) {
       data: { full_name?: string | null; email?: string | null } | null;
     };
 
-    // Create a DodoPayments payment link / checkout session
-    // Dodo uses product_id + quantity model for subscriptions
-    const checkout = await (dodo.payments as any).create({
+    const checkout = await dodo.subscriptions.create({
       billing: {
         city: "Mumbai",
         country: "IN",
@@ -58,7 +77,29 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ url: (checkout as any).payment_link });
+    if (!checkout.payment_link) {
+      return NextResponse.json(
+        { error: "Checkout link could not be created" },
+        { status: 502 },
+      );
+    }
+
+    await (adminSupabase.from("subscriptions") as any).upsert(
+      {
+        user_id: user.id,
+        plan,
+        status: "inactive",
+        dodo_subscription_id: checkout.subscription_id,
+        dodo_customer_id: checkout.customer.customer_id,
+        amount_pence: planConfig.amountPence,
+        currency: planConfig.currency,
+        charity_percentage,
+        selected_charity_id: charity_id,
+      },
+      { onConflict: "dodo_subscription_id" },
+    );
+
+    return NextResponse.json({ url: checkout.payment_link });
   } catch (err: any) {
     console.error("[create-checkout]", err);
     return NextResponse.json(

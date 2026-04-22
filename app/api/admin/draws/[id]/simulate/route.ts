@@ -1,11 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
-import {
-  randomDraw,
-  algorithmicDraw,
-  countMatches,
-  getPrizeTier,
-} from "@/lib/draw-engine";
+import { randomDraw, algorithmicDraw } from "@/lib/draw-engine";
 
 // POST /api/admin/draws/:id/simulate
 export async function POST(

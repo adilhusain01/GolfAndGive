@@ -34,8 +34,10 @@ export async function POST(req: NextRequest) {
     );
 
   try {
-    // Cancel via DodoPayments SDK
-    await dodo.subscriptions.update(subscriptionId, { status: "cancelled" });
+    await dodo.subscriptions.update(subscriptionId, {
+      cancel_at_next_billing_date: true,
+      status: "cancelled",
+    });
   } catch (err: any) {
     // If already cancelled or not found on Dodo side, still update local status
     console.warn("[cancel-sub] Dodo error:", err.message);

@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -43,16 +42,21 @@ interface Props {
     description: string | null;
     logo_url: string | null;
   }[];
+  pendingConfirmation?: boolean;
 }
 
-export function SubscribePage({ charities }: Props) {
-  const router = useRouter();
+export function SubscribePage({ charities, pendingConfirmation = false }: Props) {
   const [plan, setPlan] = useState<"monthly" | "yearly">("monthly");
-  const [charityId, setCharityId] = useState<string>("");
+  const [charityId, setCharityId] = useState<string>(charities[0]?.id ?? "");
   const [pct, setPct] = useState(10);
   const [loading, setLoading] = useState(false);
 
-  const monthlyEq = plan === "yearly" ? (4799 / 12).toFixed(0) : "499";
+  useEffect(() => {
+    if (!charityId && charities[0]?.id) {
+      setCharityId(charities[0].id);
+    }
+  }, [charities, charityId]);
+
   const charityAmt =
     plan === "yearly"
       ? ((4799 * pct) / 100).toFixed(0)
@@ -75,6 +79,10 @@ export function SubscribePage({ charities }: Props) {
         }),
       });
       const json = await res.json();
+      if (res.status === 401) {
+        window.location.href = "/login?next=%2Fsubscribe";
+        return;
+      }
       if (!res.ok) throw new Error(json.error ?? "Failed to create checkout");
       window.location.href = json.url;
     } catch (err: any) {
@@ -86,6 +94,15 @@ export function SubscribePage({ charities }: Props) {
 
   return (
     <div className="max-w-3xl mx-auto py-12 px-4 space-y-8">
+      {pendingConfirmation && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="pt-6 text-sm text-muted-foreground">
+            Payment completed. We&apos;re waiting for the subscription webhook to
+            activate your account. This usually takes a moment.
+          </CardContent>
+        </Card>
+      )}
+
       <div className="text-center">
         <h1 className="text-3xl font-bold">Choose your plan</h1>
         <p className="text-muted-foreground mt-2">
@@ -149,43 +166,54 @@ export function SubscribePage({ charities }: Props) {
       {/* ── Charity selector ──────────────────────────── */}
       <div className="space-y-3">
         <Label className="text-base font-semibold">Choose your charity</Label>
-        <div className="grid gap-2">
-          {charities.map((c) => (
-            <div
-              key={c.id}
-              onClick={() => setCharityId(c.id)}
-              className={cn(
-                "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
-                charityId === c.id
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/40",
-              )}
-            >
-              <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                {c.logo_url ? (
-                  <img
-                    src={c.logo_url}
-                    alt={c.name}
-                    className="size-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <Heart className="size-4 text-primary" />
+
+        {charities.length === 0 ? (
+          <div className="rounded-xl border border-border bg-muted p-6 text-sm text-muted-foreground">
+            No active charities are available right now. Please check back
+            later.
+          </div>
+        ) : (
+          <div className="grid gap-2">
+            {charities.map((c) => (
+              <div
+                key={c.id}
+                onClick={() => setCharityId(c.id)}
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all",
+                  charityId === c.id
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/40",
+                )}
+              >
+                <div className="relative size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+                  {c.logo_url ? (
+                    <Image
+                      src={c.logo_url}
+                      alt={c.name}
+                      fill
+                      sizes="40px"
+                      className="object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <Heart className="size-4 text-primary" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm">{c.name}</p>
+                  {c.description && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      {c.description}
+                    </p>
+                  )}
+                </div>
+                {charityId === c.id && (
+                  <Check className="size-4 text-primary shrink-0" />
                 )}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm">{c.name}</p>
-                {c.description && (
-                  <p className="text-xs text-muted-foreground truncate">
-                    {c.description}
-                  </p>
-                )}
-              </div>
-              {charityId === c.id && (
-                <Check className="size-4 text-primary shrink-0" />
-              )}
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Charity % slider ──────────────────────────── */}
@@ -215,7 +243,7 @@ export function SubscribePage({ charities }: Props) {
         size="lg"
         className="w-full text-base h-12"
         onClick={handleSubscribe}
-        disabled={loading}
+        disabled={loading || !charityId}
       >
         {loading && <Loader2 className="size-4 mr-2 animate-spin" />}
         Subscribe {plan === "yearly" ? "Yearly · ₹4,799" : "Monthly · ₹499"}

@@ -1,5 +1,5 @@
+import Image from "next/image";
 import {
-  type ImgHTMLAttributes,
   type HTMLAttributes,
   type ReactNode,
 } from "react";
@@ -7,7 +7,11 @@ import { cn } from "@/lib/utils";
 
 type AvatarProps = HTMLAttributes<HTMLDivElement>;
 
-type AvatarImageProps = ImgHTMLAttributes<HTMLImageElement>;
+type AvatarImageProps = {
+  alt?: string;
+  className?: string;
+  src?: string;
+};
 
 type AvatarFallbackProps = HTMLAttributes<HTMLDivElement> & {
   children: ReactNode;
@@ -26,8 +30,17 @@ export function Avatar({ className, ...props }: AvatarProps) {
 }
 
 export function AvatarImage({ className, ...props }: AvatarImageProps) {
+  if (!props.src) return null;
+
   return (
-    <img className={cn("h-full w-full object-cover", className)} {...props} />
+    <Image
+      src={props.src}
+      alt={props.alt ?? ""}
+      fill
+      sizes="64px"
+      className={cn("object-cover", className)}
+      unoptimized
+    />
   );
 }
 

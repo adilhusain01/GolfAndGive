@@ -84,7 +84,7 @@ export function CharityCard({ subscription }: { subscription: any }) {
 export function DrawParticipationCard({
   draw, scores
 }: { draw: any; scores: any[] }) {
-  const eligible     = scores.length >= 1;
+  const eligible = scores.length === 5;
   const hasEnoughScores = scores.length === 5;
 
   return (

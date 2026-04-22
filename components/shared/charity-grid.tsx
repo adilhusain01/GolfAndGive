@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, ExternalLink } from "lucide-react";
@@ -27,9 +28,9 @@ export function CharityGrid({ charities }: { charities: Charity[] }) {
           <Card className="h-full hover:border-primary/40 transition-colors group">
             <CardContent className="pt-5">
               <div className="flex items-start gap-3 mb-3">
-                <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <div className="relative size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
                   {c.logo_url
-                    ? <img src={c.logo_url} alt={c.name} className="size-9 rounded-full object-cover" />
+                    ? <Image src={c.logo_url} alt={c.name} fill sizes="40px" className="object-cover" unoptimized />
                     : <Heart className="size-4 text-primary" />}
                 </div>
                 <div className="flex-1 min-w-0">

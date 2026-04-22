@@ -1,9 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
 import {
   Card,
   CardContent,
@@ -25,7 +25,6 @@ interface Props {
 
 export function CharitySettings({ subscription, charities }: Props) {
   const router = useRouter();
-  const supabase = createClient();
 
   const [charityId, setCharityId] = useState<string>(
     subscription?.selected_charity_id ?? "",
@@ -42,13 +41,18 @@ export function CharitySettings({ subscription, charities }: Props) {
   const handleSave = async () => {
     if (!subscription) return;
     setLoading(true);
-    const { error } = await supabase
-      .from("subscriptions")
-      .update({ selected_charity_id: charityId, charity_percentage: pct })
-      .eq("id", subscription.id);
+    const res = await fetch("/api/subscription/preferences", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        charity_id: charityId,
+        charity_percentage: pct,
+      }),
+    });
+    const json = await res.json();
 
-    if (error) {
-      toast.error(error.message);
+    if (!res.ok) {
+      toast.error(json.error ?? "Could not update charity preference");
       setLoading(false);
       return;
     }
@@ -101,12 +105,15 @@ export function CharitySettings({ subscription, charities }: Props) {
                   : "border-border hover:border-primary/40",
               )}
             >
-              <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <div className="relative size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
                 {c.logo_url ? (
-                  <img
+                  <Image
                     src={c.logo_url}
                     alt={c.name}
-                    className="size-9 rounded-full object-cover"
+                    fill
+                    sizes="40px"
+                    className="object-cover"
+                    unoptimized
                   />
                 ) : (
                   <Heart className="size-4 text-primary" />

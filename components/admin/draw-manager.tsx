@@ -8,15 +8,14 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { drawCreateSchema, drawPublishSchema, type DrawCreateInput, type DrawPublishInput } from "@/lib/validations";
 import { splitPrizePool } from "@/lib/dodo/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { Calendar, Play, Send, Loader2, Shuffle, Trophy, Zap } from "lucide-react";
+import { Calendar, Send, Loader2, Shuffle, Trophy, Zap } from "lucide-react";
 import { getMonthLabel } from "@/lib/utils";
 
 interface Props {
@@ -36,7 +35,6 @@ export function DrawManager({ draws: initialDraws, activeSubscribers }: Props) {
   const [createOpen, setCreateOpen] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [selectedDraw, setSelectedDraw] = useState<any>(null);
-  const [simNumbers, setSimNumbers] = useState<number[]>([]);
   const [loading, setLoading]       = useState(false);
 
   // Calculate total prize pool from active subs
@@ -80,7 +78,6 @@ export function DrawManager({ draws: initialDraws, activeSubscribers }: Props) {
     const json = await res.json();
     if (!res.ok) { toast.error(json.error); setLoading(false); return; }
     toast.success("Simulation complete! Review before publishing.");
-    setSimNumbers(json.numbers);
     setSelectedDraw({ ...draw, status: "simulation", winning_numbers: json.numbers });
     setPublishOpen(true);
     publishForm.reset({ draw_id: draw.id, winning_numbers: json.numbers });

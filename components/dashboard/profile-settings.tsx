@@ -50,16 +50,22 @@ export function ProfileSettings({ profile }: { profile: any }) {
     if (!file) return;
     setUploading(true);
 
-    const ext  = file.name.split(".").pop();
-    const path = `${profile.id}/avatar.${ext}`;
+    const formData = new FormData();
+    formData.set("file", file);
 
-    const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
-    if (uploadError) { toast.error(uploadError.message); setUploading(false); return; }
+    const res = await fetch("/api/profile/avatar", {
+      method: "POST",
+      body: formData,
+    });
+    const json = await res.json();
 
-    const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
+    if (!res.ok) {
+      toast.error(json.error ?? "Avatar upload failed");
+      setUploading(false);
+      return;
+    }
 
-    await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", profile.id);
-    setAvatarUrl(publicUrl);
+    setAvatarUrl(json.avatar_url);
     toast.success("Avatar updated!");
     setUploading(false);
     router.refresh();

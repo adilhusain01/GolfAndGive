@@ -30,11 +30,14 @@ export async function POST(req: NextRequest) {
   const supabase = createAdminClient();
 
   // Log raw event
-  await (supabase.from("payment_events") as any).insert({
-    event_type: event.type,
-    payload: event,
-    user_id: event.data?.metadata?.user_id ?? null,
-  });
+  const { data: paymentEvent } = await (supabase.from("payment_events") as any)
+    .insert({
+      event_type: event.type,
+      payload: event,
+      user_id: event.data?.metadata?.user_id ?? null,
+    })
+    .select("id")
+    .single();
 
   try {
     switch (event.type) {
@@ -48,8 +51,10 @@ export async function POST(req: NextRequest) {
         const charityId = meta.charity_id;
         const charityPercentage = parseInt(meta.charity_percentage ?? "10", 10);
         const amountPence = event.data?.amount ?? 0;
+        const dodoSubscriptionId =
+          event.data?.subscription_id ?? event.data?.payment_id;
+        if (!dodoSubscriptionId) break;
 
-        // Upsert subscription
         const now = new Date();
         const periodEnd = new Date(now);
         periodEnd.setMonth(periodEnd.getMonth() + (plan === "yearly" ? 12 : 1));
@@ -60,8 +65,7 @@ export async function POST(req: NextRequest) {
               user_id: userId,
               plan,
               status: "active",
-              dodo_subscription_id:
-                event.data?.subscription_id ?? event.data?.payment_id,
+              dodo_subscription_id: dodoSubscriptionId,
               dodo_customer_id: event.data?.customer_id,
               amount_pence: amountPence,
               charity_percentage: charityPercentage,
@@ -69,7 +73,7 @@ export async function POST(req: NextRequest) {
               current_period_start: now.toISOString(),
               current_period_end: periodEnd.toISOString(),
             },
-            { onConflict: "user_id" },
+            { onConflict: "dodo_subscription_id" },
           )
           .select()
           .single();
@@ -89,11 +93,11 @@ export async function POST(req: NextRequest) {
         }
 
         // Mark event processed
-        await (supabase.from("payment_events") as any)
-          .update({ processed: true })
-          .eq("event_type", event.type)
-          .order("created_at", { ascending: false })
-          .limit(1);
+        if (paymentEvent?.id) {
+          await (supabase.from("payment_events") as any)
+            .update({ processed: true })
+            .eq("id", paymentEvent.id);
+        }
 
         break;
       }

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -102,8 +103,16 @@ export default async function HomePage() {
               <Card className="overflow-hidden">
                 <CardContent className="p-0">
                   {featuredCharity.cover_url ? (
-                    <img src={featuredCharity.cover_url} alt={featuredCharity.name}
-                      className="w-full h-64 object-cover" />
+                    <div className="relative h-64 w-full">
+                      <Image
+                        src={featuredCharity.cover_url}
+                        alt={featuredCharity.name}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
                   ) : (
                     <div className="w-full h-64 bg-primary/10 flex items-center justify-center">
                       <Heart className="size-16 text-primary/40" />

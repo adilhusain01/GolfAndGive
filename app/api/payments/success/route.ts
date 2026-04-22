@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // We just redirect the user to the dashboard with a success message.
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.clone();
-  url.pathname   = "/dashboard";
-  url.search     = "?welcome=1";
+  url.pathname = "/subscribe";
+  url.search = "?success=1";
   return NextResponse.redirect(url);
 }

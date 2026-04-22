@@ -98,8 +98,9 @@ export async function POST(
 
   const entries: DrawEntryInsert[] = [];
   const winnerRows: any[] = [];
+  const eligibleUserIds = userIds.filter((userId) => (userScores[userId] ?? []).length === 5);
 
-  for (const userId of userIds) {
+  for (const userId of eligibleUserIds) {
     const nums = userScores[userId] ?? [];
     const matches = countMatches(nums, winning_numbers);
     const tier = getPrizeTier(matches);

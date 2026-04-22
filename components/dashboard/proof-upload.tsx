@@ -3,7 +3,6 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,33 +11,28 @@ import { getMonthLabel } from "@/lib/utils";
 
 interface Props {
   winners: any[];
-  userId:  string;
 }
 
-export function ProofUpload({ winners, userId }: Props) {
+export function ProofUpload({ winners }: Props) {
   const router   = useRouter();
-  const supabase = createClient();
   const [uploading, setUploading] = useState<string | null>(null); // winner id being uploaded
 
   const handleUpload = async (winnerId: string, file: File) => {
     setUploading(winnerId);
-    const ext  = file.name.split(".").pop();
-    const path = `${userId}/${winnerId}.${ext}`;
+    const formData = new FormData();
+    formData.set("file", file);
 
-    const { error: uploadError } = await supabase.storage
-      .from("winner-proofs")
-      .upload(path, file, { upsert: true });
+    const res = await fetch(`/api/winners/${winnerId}/proof`, {
+      method: "POST",
+      body: formData,
+    });
+    const json = await res.json();
 
-    if (uploadError) { toast.error(uploadError.message); setUploading(null); return; }
-
-    const { data: { publicUrl } } = supabase.storage.from("winner-proofs").getPublicUrl(path);
-
-    const { error: updateError } = await supabase
-      .from("winners")
-      .update({ proof_url: publicUrl })
-      .eq("id", winnerId);
-
-    if (updateError) { toast.error(updateError.message); setUploading(null); return; }
+    if (!res.ok) {
+      toast.error(json.error ?? "Could not submit proof");
+      setUploading(null);
+      return;
+    }
 
     toast.success("Proof submitted! An admin will review it shortly.");
     setUploading(null);

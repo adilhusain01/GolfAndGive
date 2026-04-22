@@ -135,7 +135,7 @@ export function ScoreWidget({ scores: initialScores, userId }: Props) {
               </div>
               <Button
                 size="sm" onClick={() => setAddOpen(true)}
-                disabled={scores.length >= 5 && false /* always allow; oldest auto-purged */}
+                disabled={isPending}
                 className="gap-1.5"
               >
                 <Plus className="size-4" />

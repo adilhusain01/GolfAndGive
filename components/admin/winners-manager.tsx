@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Trophy, ExternalLink, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
-import { formatDate, getMonthLabel } from "@/lib/utils";
+import { getMonthLabel } from "@/lib/utils";
 
 const STATUS_ICON: Record<string, any> = {
   pending:  { icon: Clock,        color: "text-amber-500" },

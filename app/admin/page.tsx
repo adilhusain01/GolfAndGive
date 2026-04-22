@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, CreditCard, Trophy, Heart, TrendingUp } from "lucide-react";
+import { Users, CreditCard, Trophy, Heart } from "lucide-react";
 import { RecentUsersTable } from "@/components/admin/recent-users-table";
 import { DrawStatsChart } from "@/components/admin/draw-stats-chart";
 import type { Metadata } from "next";

@@ -15,7 +15,7 @@ const NAV = [
   { href: "/admin/reports",   icon: BarChart3,       label: "Reports"    },
 ];
 
-export function AdminSidebar({ profile }: { profile: any }) {
+export function AdminSidebar({ profile: _profile }: { profile: any }) {
   const pathname = usePathname();
 
   return (

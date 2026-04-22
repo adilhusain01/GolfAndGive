@@ -5,7 +5,11 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Subscribe" };
 
-export default async function SubscribeRoute() {
+export default async function SubscribeRoute({
+  searchParams,
+}: {
+  searchParams?: { success?: string };
+}) {
   const supabase = await createClient();
 
   const { data: charities } = await supabase
@@ -17,7 +21,10 @@ export default async function SubscribeRoute() {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <SubscribePage charities={charities ?? []} />
+      <SubscribePage
+        charities={charities ?? []}
+        pendingConfirmation={searchParams?.success === "1"}
+      />
     </div>
   );
 }

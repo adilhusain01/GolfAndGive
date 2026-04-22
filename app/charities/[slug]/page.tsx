@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { Navbar } from "@/components/shared/navbar";
@@ -37,7 +38,14 @@ export default async function CharityPage({ params }: { params: { slug: string }
       {/* Hero / cover */}
       <div className="w-full h-64 bg-primary/10 relative overflow-hidden">
         {charity.cover_url && (
-          <img src={charity.cover_url} alt={charity.name} className="w-full h-full object-cover" />
+          <Image
+            src={charity.cover_url}
+            alt={charity.name}
+            fill
+            sizes="100vw"
+            className="object-cover"
+            unoptimized
+          />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
         {charity.is_featured && (
@@ -47,9 +55,9 @@ export default async function CharityPage({ params }: { params: { slug: string }
 
       <main className="flex-1 max-w-4xl mx-auto px-4 pb-16 w-full -mt-10 relative z-10">
         <div className="flex items-start gap-4 mb-8">
-          <div className="size-16 rounded-2xl bg-background border-2 border-border flex items-center justify-center shadow-lg">
+          <div className="relative size-16 rounded-2xl bg-background border-2 border-border flex items-center justify-center shadow-lg overflow-hidden">
             {charity.logo_url
-              ? <img src={charity.logo_url} alt={charity.name} className="size-14 rounded-xl object-cover" />
+              ? <Image src={charity.logo_url} alt={charity.name} fill sizes="64px" className="object-cover" unoptimized />
               : <Heart className="size-7 text-primary" />}
           </div>
           <div className="flex-1 pt-4">

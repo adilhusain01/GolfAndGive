@@ -6,19 +6,17 @@ import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
-  LayoutDashboard, Target, Heart, Trophy, Settings,
+  LayoutDashboard, Heart, Trophy, Settings,
   LogOut, ShieldCheck, ChevronRight, Menu, X, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { useAppStore } from "@/store";
 import { useState } from "react";
 
 const NAV = [
   { href: "/dashboard",          icon: LayoutDashboard, label: "Overview"    },
-  { href: "/dashboard/scores",   icon: Target,          label: "My Scores"   },
   { href: "/dashboard/draws",    icon: Trophy,          label: "Draws"       },
   { href: "/dashboard/charity",  icon: Heart,           label: "My Charity"  },
   { href: "/dashboard/settings", icon: Settings,        label: "Settings"    },

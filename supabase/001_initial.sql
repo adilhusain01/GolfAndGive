@@ -31,6 +31,13 @@ create table profiles (
 
 alter table profiles enable row level security;
 
+create or replace function is_admin()
+returns boolean language sql security definer as $$
+  select exists (
+    select 1 from profiles where id = auth.uid() and role = 'admin'
+  );
+$$;
+
 create policy "profiles: owner read"   on profiles for select using (auth.uid() = id);
 create policy "profiles: owner insert" on profiles for insert with check (auth.uid() = id);
 create policy "profiles: owner update" on profiles for update using (auth.uid() = id);
@@ -60,9 +67,7 @@ create table subscriptions (
 alter table subscriptions enable row level security;
 
 create policy "subs: owner read"  on subscriptions for select using (auth.uid() = user_id);
-create policy "subs: admin all"   on subscriptions for all using (
-  exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin')
-);
+create policy "subs: admin all"   on subscriptions for all using (is_admin());
 
 -- ─── CHARITIES ────────────────────────────────────────────────
 create table charities (
@@ -83,9 +88,7 @@ create table charities (
 alter table charities enable row level security;
 
 create policy "charities: public read"  on charities for select using (is_active = true);
-create policy "charities: admin all"    on charities for all using (
-  exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin')
-);
+create policy "charities: admin all"    on charities for all using (is_admin());
 
 -- Add FK now that charities exists
 alter table subscriptions
@@ -110,9 +113,7 @@ create policy "scores: owner read"   on golf_scores for select using (auth.uid()
 create policy "scores: owner insert" on golf_scores for insert with check (auth.uid() = user_id);
 create policy "scores: owner update" on golf_scores for update using (auth.uid() = user_id);
 create policy "scores: owner delete" on golf_scores for delete using (auth.uid() = user_id);
-create policy "scores: admin all"    on golf_scores for all using (
-  exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin')
-);
+create policy "scores: admin all"    on golf_scores for all using (is_admin());
 
 -- Rolling 5-score enforcement via trigger
 create or replace function enforce_rolling_five_scores()
@@ -155,9 +156,7 @@ create table draws (
 alter table draws enable row level security;
 
 create policy "draws: public read published" on draws for select using (status = 'published');
-create policy "draws: admin all"             on draws for all using (
-  exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin')
-);
+create policy "draws: admin all"             on draws for all using (is_admin());
 
 -- ─── DRAW ENTRIES ─────────────────────────────────────────────
 -- Each eligible subscriber gets an entry per draw (generated server-side)
@@ -175,9 +174,7 @@ create table draw_entries (
 alter table draw_entries enable row level security;
 
 create policy "entries: owner read" on draw_entries for select using (auth.uid() = user_id);
-create policy "entries: admin all"  on draw_entries for all using (
-  exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin')
-);
+create policy "entries: admin all"  on draw_entries for all using (is_admin());
 
 -- ─── WINNERS ──────────────────────────────────────────────────
 create table winners (
@@ -199,9 +196,7 @@ create table winners (
 alter table winners enable row level security;
 
 create policy "winners: owner read" on winners for select using (auth.uid() = user_id);
-create policy "winners: admin all"  on winners for all using (
-  exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin')
-);
+create policy "winners: admin all"  on winners for all using (is_admin());
 
 -- ─── CHARITY CONTRIBUTIONS ────────────────────────────────────
 create table charity_contributions (
@@ -219,9 +214,7 @@ create table charity_contributions (
 alter table charity_contributions enable row level security;
 
 create policy "contributions: owner read" on charity_contributions for select using (auth.uid() = user_id);
-create policy "contributions: admin all"  on charity_contributions for all using (
-  exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin')
-);
+create policy "contributions: admin all"  on charity_contributions for all using (is_admin());
 
 -- ─── PAYMENT EVENTS (audit log) ───────────────────────────────
 create table payment_events (
@@ -233,6 +226,10 @@ create table payment_events (
   processed     boolean not null default false,
   created_at    timestamptz not null default now()
 );
+
+alter table payment_events enable row level security;
+
+create policy "payment_events: admin all" on payment_events for all using (is_admin());
 
 -- ─── UPDATED_AT triggers ──────────────────────────────────────
 create or replace function set_updated_at()
@@ -281,3 +278,27 @@ insert into charities (name, slug, description, is_featured) values
   ('Sewa International', 'sewa-international', 'Humanitarian relief and sustainable development across India.', true),
   ('CRY – Child Rights and You', 'cry-india', 'Ensuring happier childhoods and equal opportunities for children.', false),
   ('Akshaya Patra Foundation', 'akshaya-patra', 'Mid-day meal programme reaching millions of school children.', false);
+
+-- ─── GRANTS ───────────────────────────────────────────────────
+grant usage on schema public to anon, authenticated, service_role;
+
+grant select on table public.charities to anon;
+grant select on table public.draws to anon;
+
+grant select, insert, update, delete on all tables in schema public to authenticated;
+grant all privileges on all tables in schema public to service_role;
+
+grant usage, select on all sequences in schema public to authenticated, service_role;
+grant execute on all functions in schema public to anon, authenticated, service_role;
+
+alter default privileges in schema public
+grant select, insert, update, delete on tables to authenticated;
+
+alter default privileges in schema public
+grant all privileges on tables to service_role;
+
+alter default privileges in schema public
+grant usage, select on sequences to authenticated, service_role;
+
+alter default privileges in schema public
+grant execute on functions to anon, authenticated, service_role;
