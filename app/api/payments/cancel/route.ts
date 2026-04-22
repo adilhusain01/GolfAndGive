@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
-import dodo from "@/lib/dodo/client";
+import { getDodo } from "@/lib/dodo/server";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
     );
 
   try {
+    const dodo = getDodo();
     await dodo.subscriptions.update(subscriptionId, {
       cancel_at_next_billing_date: true,
       status: "cancelled",

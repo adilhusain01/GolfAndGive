@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import dodo from "@/lib/dodo/client";
+import { getDodo } from "@/lib/dodo/server";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { donationCreateSchema } from "@/lib/validations";
 
@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
 
     const { charity_id, donor_name, donor_email, amount_pence, message } =
       parsed.data;
+    const dodo = getDodo();
 
     if (!process.env.DODO_DONATION_PRODUCT_ID) {
       return NextResponse.json(

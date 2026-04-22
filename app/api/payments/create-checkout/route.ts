@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
-import dodo, { dodoEnvironment, PLANS } from "@/lib/dodo/client";
+import { PLANS } from "@/lib/dodo/client";
+import { dodoEnvironment, getDodo, SERVER_PLANS } from "@/lib/dodo/server";
 import { subscriptionCreateSchema } from "@/lib/validations";
 
 export async function POST(req: NextRequest) {
@@ -22,7 +23,16 @@ export async function POST(req: NextRequest) {
       );
 
     const { plan, charity_id, charity_percentage } = parsed.data;
-    const planConfig = PLANS[plan];
+    const planConfig = SERVER_PLANS[plan];
+    const pricing = PLANS[plan];
+    const dodo = getDodo();
+
+    if (!planConfig.productId) {
+      return NextResponse.json(
+        { error: `Missing Dodo product ID for the ${plan} plan.` },
+        { status: 500 },
+      );
+    }
     const { data: existingSubscription } = await adminSupabase
       .from("subscriptions")
       .select("status, current_period_end")
@@ -96,8 +106,8 @@ export async function POST(req: NextRequest) {
         status: "inactive",
         dodo_subscription_id: checkout.subscription_id,
         dodo_customer_id: checkout.customer.customer_id,
-        amount_pence: planConfig.amountPence,
-        currency: planConfig.currency,
+        amount_pence: pricing.amountPence,
+        currency: pricing.currency,
         charity_percentage,
         selected_charity_id: charity_id,
       },

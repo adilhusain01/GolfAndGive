@@ -116,6 +116,18 @@ export function UsersManager({ users: initialUsers, charities }: Props) {
     );
   }, [query, users]);
 
+  const summary = useMemo(() => {
+    const admins = users.filter((user) => user.role === "admin").length;
+    const active = users.filter((user) => user.subscription?.status === "active").length;
+    const withoutSubscription = users.filter((user) => !user.subscription).length;
+    return {
+      total: users.length,
+      admins,
+      active,
+      withoutSubscription,
+    };
+  }, [users]);
+
   const openManage = async (userId: string) => {
     setSelectedUserId(userId);
     setDetailLoading(true);
@@ -333,7 +345,7 @@ export function UsersManager({ users: initialUsers, charities }: Props) {
   );
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="section-label">Identity Desk</p>
@@ -354,7 +366,73 @@ export function UsersManager({ users: initialUsers, charities }: Props) {
         </div>
       </div>
 
-      <Card className="overflow-hidden border-border/70 bg-card/80 shadow-sm">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {[
+          { label: "Total users", value: summary.total, note: "Profiles loaded" },
+          { label: "Active subs", value: summary.active, note: "Current active lifecycle" },
+          { label: "Admins", value: summary.admins, note: "Elevated access" },
+          { label: "No subscription", value: summary.withoutSubscription, note: "Needs setup or recovery" },
+        ].map((item) => (
+          <Card key={item.label} className="overflow-hidden border-border/70 bg-card/85 shadow-[0_18px_40px_hsl(var(--foreground)/0.06)]">
+            <CardContent className="p-5">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{item.label}</p>
+              <p className="mt-3 font-display text-3xl leading-none">{item.value}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{item.note}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid gap-3 md:hidden">
+        {filteredUsers.map((user) => (
+          <Card key={user.id} className="overflow-hidden border-border/70 bg-card/85 shadow-[0_18px_40px_hsl(var(--foreground)/0.06)]">
+            <CardContent className="space-y-4 p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-medium">{user.full_name || "Unnamed user"}</p>
+                  <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                </div>
+                <Badge variant={user.role === "admin" ? "default" : "secondary"} className="rounded-full">
+                  {user.role}
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-2xl bg-background/70 p-3">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Subscription</p>
+                  <p className="mt-2 font-medium capitalize">
+                    {user.subscription ? `${user.subscription.plan} / ${user.subscription.status}` : "None"}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-background/70 p-3">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Joined</p>
+                  <p className="mt-2 font-medium">{user.created_at ? formatDate(user.created_at) : "—"}</p>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-2 rounded-full"
+                onClick={() => openManage(user.id)}
+              >
+                <Pencil className="size-3.5" />
+                Manage user
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+
+        {filteredUsers.length === 0 && (
+          <Card className="border-border/70 bg-card/85">
+            <CardContent className="px-4 py-14 text-center text-sm text-muted-foreground">
+              No matching users found.
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      <Card className="hidden overflow-hidden border-border/70 bg-card/80 shadow-sm md:block">
         <CardContent className="p-0">
           <table className="w-full text-sm">
             <thead className="bg-muted/40">
@@ -428,9 +506,9 @@ export function UsersManager({ users: initialUsers, charities }: Props) {
       </Card>
 
       <Dialog open={!!selectedUserId} onOpenChange={(open) => !open && setSelectedUserId(null)}>
-        <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl">Manage User</DialogTitle>
+        <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto p-0">
+          <DialogHeader className="border-b border-border/70 bg-[linear-gradient(180deg,hsl(var(--card)),transparent)] px-6 py-5">
+            <DialogTitle className="font-display text-3xl">Manage User</DialogTitle>
           </DialogHeader>
 
           {detailLoading || !managed ? (
@@ -439,9 +517,9 @@ export function UsersManager({ users: initialUsers, charities }: Props) {
               Loading user data
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-6 p-6">
               <div className="grid gap-4 lg:grid-cols-[1.25fr_0.9fr]">
-                <Card className="border-border/70">
+                <Card className="border-border/70 bg-card/85">
                   <CardContent className="space-y-4 p-5">
                     <div className="flex items-start justify-between gap-4">
                       <div>
@@ -521,7 +599,7 @@ export function UsersManager({ users: initialUsers, charities }: Props) {
                       <p className="text-xs text-muted-foreground">
                         Joined {managed.user.created_at ? formatDate(managed.user.created_at) : "—"}
                       </p>
-                      <Button onClick={handleProfileSave} disabled={savingProfile} className="gap-2">
+                      <Button onClick={handleProfileSave} disabled={savingProfile} className="gap-2 rounded-full">
                         {savingProfile && <Loader2 className="size-4 animate-spin" />}
                         <UserCog className="size-4" />
                         Save Profile
@@ -570,7 +648,7 @@ export function UsersManager({ users: initialUsers, charities }: Props) {
                 </Card>
               </div>
 
-              <Card className="border-border/70">
+              <Card className="border-border/70 bg-card/85">
                 <CardContent className="space-y-4 p-5">
                   <div className="flex items-center justify-between">
                     <div>
@@ -582,7 +660,7 @@ export function UsersManager({ users: initialUsers, charities }: Props) {
                       </p>
                     </div>
                     {managed.subscription?.amount_pence ? (
-                      <Badge variant="outline">
+                      <Badge variant="outline" className="rounded-full">
                         {formatCurrency(
                           managed.subscription.amount_pence,
                           managed.subscription.currency ?? "INR",
@@ -714,7 +792,7 @@ export function UsersManager({ users: initialUsers, charities }: Props) {
                         <Button
                           onClick={handleSubscriptionSave}
                           disabled={savingSubscription}
-                          className="gap-2"
+                          className="gap-2 rounded-full"
                         >
                           {savingSubscription && <Loader2 className="size-4 animate-spin" />}
                           Save Subscription
@@ -729,7 +807,7 @@ export function UsersManager({ users: initialUsers, charities }: Props) {
                 </CardContent>
               </Card>
 
-              <Card className="border-border/70">
+              <Card className="border-border/70 bg-card/85">
                 <CardContent className="space-y-4 p-5">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
