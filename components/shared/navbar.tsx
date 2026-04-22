@@ -12,7 +12,7 @@ export async function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 px-3 pt-3">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between rounded-full border border-border/80 bg-background/82 px-4 shadow-[0_10px_40px_hsl(167_30%_16%/0.08)] backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between rounded-full border border-border/80 bg-background/92 px-4 shadow-[0_10px_40px_hsl(167_30%_16%/0.14)] backdrop-blur-xl">
         <Link href="/" className="flex items-center gap-3">
           <div className="flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_20px_hsl(var(--primary)/0.2)]">
             <Heart className="size-4" />

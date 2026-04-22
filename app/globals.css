@@ -24,6 +24,10 @@
     --input: 34 23% 82%;
     --ring: 167 46% 22%;
     --radius: 1.25rem;
+    --page-end: 36 46% 93%;
+    --panel-end: 35 40% 95%;
+    --surface-shadow: 167 28% 15%;
+    --grid-opacity: 0.18;
   }
 
   .dark {
@@ -46,6 +50,10 @@
     --border: 165 18% 19%;
     --input: 165 18% 19%;
     --ring: 31 68% 70%;
+    --page-end: 168 18% 11%;
+    --panel-end: 168 18% 14%;
+    --surface-shadow: 167 35% 4%;
+    --grid-opacity: 0.08;
   }
 }
 
@@ -59,7 +67,7 @@
     background-image:
       radial-gradient(circle at top left, hsl(16 72% 62% / 0.12), transparent 30%),
       radial-gradient(circle at 85% 10%, hsl(167 46% 22% / 0.16), transparent 30%),
-      linear-gradient(180deg, hsl(var(--background)), hsl(36 46% 93%));
+      linear-gradient(180deg, hsl(var(--background)), hsl(var(--page-end)));
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-tight;
@@ -79,7 +87,7 @@
   position: fixed;
   inset: 0;
   pointer-events: none;
-  opacity: 0.18;
+  opacity: var(--grid-opacity);
   background-image:
     linear-gradient(hsl(167 18% 22% / 0.04) 1px, transparent 1px),
     linear-gradient(90deg, hsl(167 18% 22% / 0.04) 1px, transparent 1px);
@@ -90,9 +98,9 @@
 
 .paper-panel {
   background:
-    linear-gradient(180deg, hsl(var(--card)), hsl(35 40% 95%));
+    linear-gradient(180deg, hsl(var(--card)), hsl(var(--panel-end)));
   box-shadow:
-    0 24px 60px hsl(167 28% 15% / 0.08),
+    0 24px 60px hsl(var(--surface-shadow) / 0.14),
     inset 0 1px 0 hsl(0 0% 100% / 0.9);
 }
 
