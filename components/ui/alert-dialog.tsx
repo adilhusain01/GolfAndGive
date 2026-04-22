@@ -52,7 +52,7 @@ export function AlertDialog({
           onClick={() => onOpenChange(false)}
         />
         <div
-          className="relative z-10 w-full max-w-2xl overflow-hidden rounded-3xl border border-border bg-background shadow-2xl max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)]"
+          className="relative z-10 w-full max-w-2xl rounded-3xl border border-border bg-background shadow-2xl max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)]"
           {...props}
         >
           {children}

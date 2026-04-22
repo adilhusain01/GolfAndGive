@@ -34,7 +34,7 @@ export function Dialog({
       />
       <div
         className={cn(
-          "relative z-10 w-full max-w-3xl overflow-hidden rounded-3xl border border-border bg-background shadow-2xl max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)]",
+          "relative z-10 w-full max-w-3xl rounded-3xl border border-border bg-background shadow-2xl max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)]",
           className,
         )}
         {...props}
